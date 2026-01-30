@@ -1,4 +1,9 @@
-"""Face detection module using InsightFace."""
+"""Face detection module using InsightFace.
+
+This module provides face detection capabilities using InsightFace models.
+It can detect faces in images, extract bounding boxes, confidence scores,
+facial landmarks, and face embeddings.
+"""
 
 from typing import List, Optional
 
@@ -11,7 +16,11 @@ from .models import BoundingBox, Face
 
 
 class FaceDetector:
-    """Face detection using InsightFace models."""
+    """Face detection using InsightFace models.
+
+    This class provides methods to detect faces in images using InsightFace models.
+    It supports configurable detection thresholds and multiple model types.
+    """
 
     def __init__(self, config: AppConfig):
         """Initialize the face detector.
@@ -32,7 +41,10 @@ class FaceDetector:
         """Change the InsightFace model.
 
         Args:
-            model_name: Name of the new model (e.g., 'buffalo_s', 'buffalo_l').
+            model_name: Name of the new model (e.g., 'buffalo_s', 'buffalo_l', 'buffalo_sc').
+
+        Raises:
+            ValueError: If the model name is not supported.
         """
         if model_name not in ['buffalo_s', 'buffalo_l', 'buffalo_sc']:
             raise ValueError(f"Unsupported model: {model_name}. Supported models: buffalo_s, buffalo_l, buffalo_sc")
