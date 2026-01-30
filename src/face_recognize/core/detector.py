@@ -94,55 +94,92 @@ class FaceDetector:
 
         detected_faces = []
         for face_info in faces_info:
-            # Extract confidence score
-            confidence = float(face_info.det_score)
+            # Extract confidence score - handle both dict, Mock, and object formats
+            try:
+                if hasattr(face_info, 'det_score'):
+                    # Object or Mock with det_score attribute
+                    confidence = float(face_info.det_score)
+                else:
+                    # Dictionary format
+                    confidence = float(face_info['det_score'])
+            except (AttributeError, KeyError, TypeError, ValueError):
+                # Skip face if confidence extraction fails
+                continue
 
             # PERFORMANCE OPTIMIZATION: Early exit if below threshold
             if confidence < self.threshold:
                 continue
 
-            # Extract bounding box
+            # Extract bounding box - handle both dict, Mock, and object formats
             try:
-                bbox_array = face_info.bbox.astype(int)
+                if hasattr(face_info, 'bbox'):
+                    # Object or Mock with bbox attribute
+                    bbox_array = face_info.bbox.astype(int)
+                else:
+                    # Dictionary format
+                    bbox_array = face_info['bbox'].astype(int)
+            except (AttributeError, KeyError, TypeError):
+                # Skip face if bounding box extraction fails
+                continue
+
+            try:
                 bbox = BoundingBox(
                     x1=bbox_array[0],
                     y1=bbox_array[1],
                     x2=bbox_array[2],
                     y2=bbox_array[3]
                 )
-            except (ValueError, AttributeError):
+            except (ValueError, IndexError):
                 # Skip face if bounding box extraction fails
                 continue
 
-            # Extract landmarks (5 facial points)
+            # Extract landmarks (5 facial points) - handle both dict, Mock, and object formats
             try:
-                landmarks = face_info.kps.astype(np.float32)
-            except (ValueError, AttributeError):
+                if hasattr(face_info, 'kps'):
+                    # Object or Mock with kps attribute
+                    landmarks = face_info.kps.astype(np.float32)
+                else:
+                    # Dictionary format
+                    landmarks = face_info['kps'].astype(np.float32)
+            except (AttributeError, KeyError, TypeError):
                 # Skip face if landmark extraction fails
                 continue
 
-            # Extract embedding
+            # Extract embedding - handle both dict, Mock, and object formats
             try:
-                embedding = face_info.embedding.astype(np.float32)
+                if hasattr(face_info, 'embedding'):
+                    # Object or Mock with embedding attribute
+                    embedding = face_info.embedding.astype(np.float32)
+                else:
+                    # Dictionary format
+                    embedding = face_info['embedding'].astype(np.float32)
+            except (AttributeError, KeyError, TypeError):
+                # Skip face if embedding extraction fails
+                continue
 
-                # PERFORMANCE OPTIMIZATION: Use more efficient normalization
+            # PERFORMANCE OPTIMIZATION: Use more efficient normalization
+            try:
                 norm = np.linalg.norm(embedding)
                 if norm != 0:
                     embedding = embedding / norm
                 else:
                     # Skip face if normalization results in zero vector
                     continue
-            except (ValueError, AttributeError):
-                # Skip face if embedding extraction fails
+            except (ValueError, TypeError):
+                # Skip face if normalization fails
                 continue
 
             # Create Face object
-            face = Face(
-                embedding=embedding,
-                bbox=bbox,
-                confidence=confidence,
-                landmarks=landmarks
-            )
+            try:
+                face = Face(
+                    embedding=embedding,
+                    bbox=bbox,
+                    confidence=confidence,
+                    landmarks=landmarks
+                )
+            except (TypeError, ValueError):
+                # Skip face if Face object creation fails
+                continue
 
             detected_faces.append(face)
 
