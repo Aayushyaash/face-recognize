@@ -15,7 +15,7 @@ class FaceDetector:
 
     def __init__(self, config: AppConfig):
         """Initialize the face detector.
-        
+
         Args:
             config: Application configuration.
         """
@@ -23,8 +23,22 @@ class FaceDetector:
         self.model_name = config.model
         self.threshold = config.detection_threshold
         self.device = config.device
-        
+
         # Initialize the InsightFace model
+        self.model = insightface.app.FaceAnalysis(name=self.model_name, root='./models')
+        self.model.prepare(ctx_id=0 if self.device == 'cpu' else 0)  # ctx_id 0 for CPU
+
+    def change_model(self, model_name: str) -> None:
+        """Change the InsightFace model.
+
+        Args:
+            model_name: Name of the new model (e.g., 'buffalo_s', 'buffalo_l').
+        """
+        if model_name not in ['buffalo_s', 'buffalo_l', 'buffalo_sc']:
+            raise ValueError(f"Unsupported model: {model_name}. Supported models: buffalo_s, buffalo_l, buffalo_sc")
+
+        self.model_name = model_name
+        # Reinitialize the model with the new name
         self.model = insightface.app.FaceAnalysis(name=self.model_name, root='./models')
         self.model.prepare(ctx_id=0 if self.device == 'cpu' else 0)  # ctx_id 0 for CPU
 
