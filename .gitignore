@@ -25,6 +25,7 @@ wheels/
 *.egg
 
 # Virtual environments
+.venv/
 venv/
 env/
 ENV/
@@ -56,5 +57,5 @@ docs/
 conductor/
 FaceVector-Py/
 
-# models directory pre-trained file
+# models directory - exclude the entire directory due to large model files
 models/
