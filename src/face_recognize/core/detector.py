@@ -51,18 +51,34 @@ class FaceDetector:
         Returns:
             List of detected Face objects.
         """
+        # Validate input image
+        if image.size == 0:
+            # Return empty list for empty images
+            return []
+
+        if len(image.shape) < 2:
+            # Return empty list for invalid image dimensions
+            return []
+
         # Convert image to RGB if it's BGR
-        if image.shape[-1] == 3:
+        if len(image.shape) == 3 and image.shape[-1] == 3:
             # Assume BGR if the values seem high (indicating 0-255 range)
             if image.max() > 1.0:
                 image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             else:
                 image_rgb = image
+        elif len(image.shape) == 2:
+            # Grayscale image, convert to RGB
+            image_rgb = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         else:
             image_rgb = image
 
-        # Perform face detection
-        faces_info = self.model.get(image_rgb)
+        try:
+            # Perform face detection
+            faces_info = self.model.get(image_rgb)
+        except Exception:
+            # If model fails to process the image, return empty list
+            return []
 
         detected_faces = []
         for face_info in faces_info:
@@ -72,22 +88,34 @@ class FaceDetector:
             # Only include faces that meet the confidence threshold
             if confidence >= self.threshold:
                 # Extract bounding box
-                bbox_array = face_info.bbox.astype(int)
-                bbox = BoundingBox(
-                    x1=bbox_array[0],
-                    y1=bbox_array[1],
-                    x2=bbox_array[2],
-                    y2=bbox_array[3]
-                )
+                try:
+                    bbox_array = face_info.bbox.astype(int)
+                    bbox = BoundingBox(
+                        x1=bbox_array[0],
+                        y1=bbox_array[1],
+                        x2=bbox_array[2],
+                        y2=bbox_array[3]
+                    )
+                except (ValueError, AttributeError):
+                    # Skip face if bounding box extraction fails
+                    continue
 
                 # Extract landmarks (5 facial points)
-                landmarks = face_info.kps.astype(np.float32)
+                try:
+                    landmarks = face_info.kps.astype(np.float32)
+                except (ValueError, AttributeError):
+                    # Skip face if landmark extraction fails
+                    continue
 
                 # Extract embedding
-                embedding = face_info.embedding.astype(np.float32)
+                try:
+                    embedding = face_info.embedding.astype(np.float32)
 
-                # Normalize the embedding
-                embedding = embedding / np.linalg.norm(embedding)
+                    # Normalize the embedding
+                    embedding = embedding / np.linalg.norm(embedding)
+                except (ValueError, AttributeError, ZeroDivisionError):
+                    # Skip face if embedding extraction or normalization fails
+                    continue
 
                 # Create Face object
                 face = Face(
