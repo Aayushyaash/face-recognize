@@ -30,10 +30,10 @@ class FaceDetector:
 
     def detect_faces(self, image: np.ndarray) -> List[Face]:
         """Detect faces in an image.
-        
+
         Args:
             image: Input image as numpy array (H, W, C).
-            
+
         Returns:
             List of detected Face objects.
         """
@@ -49,12 +49,12 @@ class FaceDetector:
 
         # Perform face detection
         faces_info = self.model.get(image_rgb)
-        
+
         detected_faces = []
         for face_info in faces_info:
             # Extract confidence score
             confidence = float(face_info.det_score)
-            
+
             # Only include faces that meet the confidence threshold
             if confidence >= self.threshold:
                 # Extract bounding box
@@ -65,16 +65,16 @@ class FaceDetector:
                     x2=bbox_array[2],
                     y2=bbox_array[3]
                 )
-                
+
                 # Extract landmarks (5 facial points)
                 landmarks = face_info.kps.astype(np.float32)
-                
+
                 # Extract embedding
                 embedding = face_info.embedding.astype(np.float32)
-                
+
                 # Normalize the embedding
                 embedding = embedding / np.linalg.norm(embedding)
-                
+
                 # Create Face object
                 face = Face(
                     embedding=embedding,
@@ -82,10 +82,25 @@ class FaceDetector:
                     confidence=confidence,
                     landmarks=landmarks
                 )
-                
+
                 detected_faces.append(face)
-        
+
         return detected_faces
+
+    def detect_faces_with_boxes_and_confidence(self, image: np.ndarray) -> tuple[List[BoundingBox], List[float]]:
+        """Detect faces and return only bounding boxes and confidence scores.
+
+        Args:
+            image: Input image as numpy array (H, W, C).
+
+        Returns:
+            Tuple of (list of bounding boxes, list of confidence scores).
+        """
+        faces = self.detect_faces(image)
+        bboxes = [face.bbox for face in faces]
+        confidences = [face.confidence for face in faces]
+
+        return bboxes, confidences
 
     def set_threshold(self, threshold: float) -> None:
         """Update the detection confidence threshold.
