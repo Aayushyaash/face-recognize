@@ -85,47 +85,54 @@ class FaceDetector:
             # Extract confidence score
             confidence = float(face_info.det_score)
 
-            # Only include faces that meet the confidence threshold
-            if confidence >= self.threshold:
-                # Extract bounding box
-                try:
-                    bbox_array = face_info.bbox.astype(int)
-                    bbox = BoundingBox(
-                        x1=bbox_array[0],
-                        y1=bbox_array[1],
-                        x2=bbox_array[2],
-                        y2=bbox_array[3]
-                    )
-                except (ValueError, AttributeError):
-                    # Skip face if bounding box extraction fails
-                    continue
+            # PERFORMANCE OPTIMIZATION: Early exit if below threshold
+            if confidence < self.threshold:
+                continue
 
-                # Extract landmarks (5 facial points)
-                try:
-                    landmarks = face_info.kps.astype(np.float32)
-                except (ValueError, AttributeError):
-                    # Skip face if landmark extraction fails
-                    continue
-
-                # Extract embedding
-                try:
-                    embedding = face_info.embedding.astype(np.float32)
-
-                    # Normalize the embedding
-                    embedding = embedding / np.linalg.norm(embedding)
-                except (ValueError, AttributeError, ZeroDivisionError):
-                    # Skip face if embedding extraction or normalization fails
-                    continue
-
-                # Create Face object
-                face = Face(
-                    embedding=embedding,
-                    bbox=bbox,
-                    confidence=confidence,
-                    landmarks=landmarks
+            # Extract bounding box
+            try:
+                bbox_array = face_info.bbox.astype(int)
+                bbox = BoundingBox(
+                    x1=bbox_array[0],
+                    y1=bbox_array[1],
+                    x2=bbox_array[2],
+                    y2=bbox_array[3]
                 )
+            except (ValueError, AttributeError):
+                # Skip face if bounding box extraction fails
+                continue
 
-                detected_faces.append(face)
+            # Extract landmarks (5 facial points)
+            try:
+                landmarks = face_info.kps.astype(np.float32)
+            except (ValueError, AttributeError):
+                # Skip face if landmark extraction fails
+                continue
+
+            # Extract embedding
+            try:
+                embedding = face_info.embedding.astype(np.float32)
+
+                # PERFORMANCE OPTIMIZATION: Use more efficient normalization
+                norm = np.linalg.norm(embedding)
+                if norm != 0:
+                    embedding = embedding / norm
+                else:
+                    # Skip face if normalization results in zero vector
+                    continue
+            except (ValueError, AttributeError):
+                # Skip face if embedding extraction fails
+                continue
+
+            # Create Face object
+            face = Face(
+                embedding=embedding,
+                bbox=bbox,
+                confidence=confidence,
+                landmarks=landmarks
+            )
+
+            detected_faces.append(face)
 
         return detected_faces
 
