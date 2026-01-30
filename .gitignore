@@ -51,13 +51,9 @@ logs/
 .env
 .env.local
 
-# Docs directory                                                                                                                        
+# External directories (never commit these)
 docs/
-
-# Conductor directory (AI-related files)                                                                                                    
 conductor/
-
-# Reference directory (external references and resources)
 FaceVector-Py/
 
 # models directory pre-trained file
