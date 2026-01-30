@@ -67,6 +67,49 @@ face-recognize run
 
 Press 'q' to quit the camera window.
 
+### Using the Face Detection Module
+
+```python
+from src.face_recognize.core.detector import FaceDetector
+from src.face_recognize.config import DEFAULT_CONFIG
+import cv2
+
+# Initialize the face detector
+detector = FaceDetector(config=DEFAULT_CONFIG)
+
+# Load an image
+image = cv2.imread("path/to/image.jpg")
+
+# Detect faces
+faces = detector.detect_faces(image)
+
+# Print results
+for i, face in enumerate(faces):
+    print(f"Face {i+1}:")
+    print(f"  Bounding Box: ({face.bbox.x1}, {face.bbox.y1}) to ({face.bbox.x2}, {face.bbox.y2})")
+    print(f"  Confidence: {face.confidence:.2f}")
+    print(f"  Embedding shape: {face.embedding.shape}")
+```
+
+### Changing Detection Threshold
+
+```python
+# Get current threshold
+current_threshold = detector.get_threshold()
+print(f"Current threshold: {current_threshold}")
+
+# Set new threshold
+detector.set_threshold(0.8)
+print(f"New threshold: {detector.get_threshold()}")
+```
+
+### Using Different Models
+
+```python
+# Change to a different InsightFace model
+detector.change_model('buffalo_l')  # or 'buffalo_s', 'buffalo_sc'
+```
+
 ---
 
 ## CLI Commands
