@@ -104,10 +104,18 @@ class FaceDetector:
 
     def set_threshold(self, threshold: float) -> None:
         """Update the detection confidence threshold.
-        
+
         Args:
             threshold: New confidence threshold between 0 and 1.
         """
         if not 0 <= threshold <= 1:
             raise ValueError("Threshold must be between 0 and 1")
         self.threshold = threshold
+
+    def get_threshold(self) -> float:
+        """Get the current detection confidence threshold.
+
+        Returns:
+            Current confidence threshold.
+        """
+        return self.threshold
