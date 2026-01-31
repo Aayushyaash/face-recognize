@@ -23,7 +23,7 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/face-recognize.git
+git clone https://github.com/Aayushyaash/face-recognize.git
 cd face-recognize
 
 # Create virtual environment
@@ -176,7 +176,7 @@ For implementation details, see the Architecture section above.
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/face-recognize.git
+git clone https://github.com/Aayushyaash/face-recognize.git
 cd face-recognize
 
 # Create and activate virtual environment
