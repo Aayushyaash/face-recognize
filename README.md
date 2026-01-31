@@ -166,7 +166,7 @@ The system consists of several key components:
 - **Database Backend**: Stores registered faces in JSON format
 - **Visualization Layer**: Draws bounding boxes and labels on the video feed
 
-For implementation details, see the [Implementation Plan](docs/IMPLEMENTATION_PLAN.md).
+For implementation details, see the Architecture section above.
 
 ---
 
@@ -206,35 +206,6 @@ uv run mypy src/
 # Run tests
 uv run pytest tests/ -v
 ```
-
----
-
-## Reference Project
-
-This project draws inspiration from the [FaceVector-Py](FaceVector-Py/) reference implementation, particularly in:
-
-- Face detection and embedding extraction patterns
-- Data model structures for faces and bounding boxes
-- Quality assessment techniques
-- Visualization approaches
-- Testing strategies
-
-However, Face-Recognize is implemented as a standalone system with its own architecture and codebase.
-
----
-
-## Contributing
-
-This is a personal project, but suggestions and feedback are welcome!
-
-1. Fork the repository
-2. Create a feature branch
-3. Follow the coding standards
-4. Add tests for new features
-5. Submit a pull request
-
----
-
 ## License
 
 MIT License - see the [LICENSE](LICENSE) file for details.
