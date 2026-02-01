@@ -1,8 +1,9 @@
 """Unit tests for error handling in face detection."""
 
+from unittest.mock import Mock, patch
+
 import numpy as np
 import pytest
-from unittest.mock import Mock, patch
 
 from src.face_recognize.config import DEFAULT_CONFIG
 from src.face_recognize.core.detector import FaceDetector
@@ -29,7 +30,7 @@ class TestFaceDetectionErrorHandling:
         faces = detector.detect_faces(invalid_img)
         assert len(faces) == 0
 
-    @patch('insightface.app.FaceAnalysis')
+    @patch("insightface.app.FaceAnalysis")
     def test_detect_faces_model_failure(self, mock_face_analysis):
         """Test detecting faces when the model fails."""
         # Mock the InsightFace app to raise an exception
@@ -47,7 +48,7 @@ class TestFaceDetectionErrorHandling:
         faces = detector.detect_faces(dummy_img)
         assert len(faces) == 0
 
-    @patch('insightface.app.FaceAnalysis')
+    @patch("insightface.app.FaceAnalysis")
     def test_detect_faces_with_invalid_bbox(self, mock_face_analysis):
         """Test detecting faces when bounding box extraction fails."""
         # Mock the InsightFace app to return a face with invalid bbox
@@ -69,7 +70,7 @@ class TestFaceDetectionErrorHandling:
         faces = detector.detect_faces(dummy_img)
         assert len(faces) == 0
 
-    @patch('insightface.app.FaceAnalysis')
+    @patch("insightface.app.FaceAnalysis")
     def test_detect_faces_with_invalid_landmarks(self, mock_face_analysis):
         """Test detecting faces when landmark extraction fails."""
         # Mock the InsightFace app to return a face with invalid landmarks
@@ -91,7 +92,7 @@ class TestFaceDetectionErrorHandling:
         faces = detector.detect_faces(dummy_img)
         assert len(faces) == 0
 
-    @patch('insightface.app.FaceAnalysis')
+    @patch("insightface.app.FaceAnalysis")
     def test_detect_faces_with_invalid_embedding(self, mock_face_analysis):
         """Test detecting faces when embedding extraction fails."""
         # Mock the InsightFace app to return a face with invalid embedding
@@ -100,7 +101,9 @@ class TestFaceDetectionErrorHandling:
         mock_face_info.det_score = 0.85
         mock_face_info.bbox = np.array([10, 20, 110, 120])
         mock_face_info.kps = np.random.rand(5, 2)
-        mock_face_info.embedding = "invalid_embedding"  # Invalid embedding that will cause an error
+        mock_face_info.embedding = (
+            "invalid_embedding"  # Invalid embedding that will cause an error
+        )
         mock_app.get.return_value = [mock_face_info]
         mock_face_analysis.return_value = mock_app
 
@@ -113,9 +116,9 @@ class TestFaceDetectionErrorHandling:
         faces = detector.detect_faces(dummy_img)
         assert len(faces) == 0
 
-    @patch('insightface.app.FaceAnalysis')
+    @patch("insightface.app.FaceAnalysis")
     def test_detect_faces_with_zero_norm_embedding(self, mock_face_analysis):
-        """Test detecting faces when embedding has zero norm (causes ZeroDivisionError)."""
+        """Test faces when embedding has zero norm (ZeroDivisionError)."""
         # Mock the InsightFace app to return a face with zero embedding
         mock_app = Mock()
         mock_face_info = Mock()
@@ -144,7 +147,7 @@ class TestFaceDetectionErrorHandling:
 
         # Should not raise an error when converting grayscale to RGB
         try:
-            with patch.object(detector.model, 'get', return_value=[]):
+            with patch.object(detector.model, "get", return_value=[]):
                 faces = detector.detect_faces(gray_img)
                 assert isinstance(faces, list)
         except Exception:

@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
+import numpy.typing as npt
 
 
 @dataclass
@@ -72,7 +73,7 @@ class BoundingBox:
         return intersection / union if union > 0 else 0.0
 
     @classmethod
-    def from_array(cls, arr: np.ndarray) -> BoundingBox:
+    def from_array(cls, arr: npt.NDArray[Any]) -> BoundingBox:
         """Create BoundingBox from numpy array [x1, y1, x2, y2].
 
         Args:
@@ -101,10 +102,10 @@ class Face:
         track_id: Persistent tracking ID (assigned by tracker).
     """
 
-    embedding: np.ndarray
+    embedding: npt.NDArray[np.float32]
     bbox: BoundingBox
     confidence: float
-    landmarks: np.ndarray
+    landmarks: npt.NDArray[np.float32]
     track_id: Optional[int] = None
 
     def similarity(self, other: Face) -> float:
@@ -118,7 +119,7 @@ class Face:
         """
         return float(np.dot(self.embedding, other.embedding))
 
-    def similarity_to_embedding(self, embedding: np.ndarray) -> float:
+    def similarity_to_embedding(self, embedding: npt.NDArray[np.float32]) -> float:
         """Calculate cosine similarity with an embedding vector.
 
         Args:

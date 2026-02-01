@@ -1,8 +1,9 @@
 """Test cases for error handling scenarios."""
 
+from unittest.mock import Mock, patch
+
 import numpy as np
 import pytest
-from unittest.mock import Mock, patch
 
 from src.face_recognize.config import DEFAULT_CONFIG
 from src.face_recognize.core.detector import FaceDetector
@@ -11,7 +12,7 @@ from src.face_recognize.core.detector import FaceDetector
 class TestErrorHandlingScenarios:
     """Test cases for error handling scenarios."""
 
-    @patch('insightface.app.FaceAnalysis')
+    @patch("insightface.app.FaceAnalysis")
     def test_error_handling_for_images_with_no_faces(self, mock_face_analysis):
         """Test error handling for images with no faces."""
         # Mock the InsightFace app to return no faces
@@ -42,8 +43,8 @@ class TestErrorHandlingScenarios:
         rgb_img = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
         # Should not raise an error (though might not detect faces without proper model)
         try:
-            # We'll patch the model.get method to return empty list to avoid actual model loading
-            with patch.object(detector.model, 'get', return_value=[]):
+            # Patch model.get to return empty list to avoid model loading
+            with patch.object(detector.model, "get", return_value=[]):
                 faces = detector.detect_faces(rgb_img)
                 assert isinstance(faces, list)
         except Exception:
@@ -52,7 +53,7 @@ class TestErrorHandlingScenarios:
         # Test with a grayscale image
         gray_img = np.random.randint(0, 255, (480, 640), dtype=np.uint8)
         try:
-            with patch.object(detector.model, 'get', return_value=[]):
+            with patch.object(detector.model, "get", return_value=[]):
                 faces = detector.detect_faces(gray_img)
                 assert isinstance(faces, list)
         except Exception:
@@ -61,14 +62,14 @@ class TestErrorHandlingScenarios:
         # Test with an invalid image shape
         invalid_img = np.random.randint(0, 255, (10, 20), dtype=np.uint8)  # Too small
         try:
-            with patch.object(detector.model, 'get', return_value=[]):
+            with patch.object(detector.model, "get", return_value=[]):
                 faces = detector.detect_faces(invalid_img)
                 # Even invalid images should not crash, just return empty list
         except Exception:
             # Some invalid images might cause errors, which is acceptable
             pass
 
-    @patch('insightface.app.FaceAnalysis')
+    @patch("insightface.app.FaceAnalysis")
     def test_handling_of_corrupted_invalid_images(self, mock_face_analysis):
         """Test handling of corrupted/invalid images."""
         detector = FaceDetector(config=DEFAULT_CONFIG)
@@ -76,9 +77,11 @@ class TestErrorHandlingScenarios:
         # Test with an image that has NaN values
         nan_img = np.full((100, 100, 3), np.nan, dtype=float)
         try:
-            with patch.object(detector.model, 'get', side_effect=Exception("Invalid image")):
-                faces = detector.detect_faces(nan_img)
-                # If the underlying model throws an error, we expect it to be handled gracefully
+            with patch.object(
+                detector.model, "get", side_effect=Exception("Invalid image")
+            ):
+                detector.detect_faces(nan_img)
+                # If model throws error, we expect graceful handling
         except Exception:
             # It's acceptable for invalid images to cause exceptions at the model level
             pass
@@ -86,8 +89,10 @@ class TestErrorHandlingScenarios:
         # Test with an image that has infinite values
         inf_img = np.full((100, 100, 3), np.inf, dtype=float)
         try:
-            with patch.object(detector.model, 'get', side_effect=Exception("Invalid image")):
-                faces = detector.detect_faces(inf_img)
+            with patch.object(
+                detector.model, "get", side_effect=Exception("Invalid image")
+            ):
+                detector.detect_faces(inf_img)
         except Exception:
             # Again, model-level exceptions for invalid images are acceptable
             pass
@@ -95,8 +100,10 @@ class TestErrorHandlingScenarios:
         # Test with zero-sized image
         zero_img = np.empty((0, 0, 3), dtype=np.uint8)
         try:
-            with patch.object(detector.model, 'get', side_effect=Exception("Invalid image")):
-                faces = detector.detect_faces(zero_img)
+            with patch.object(
+                detector.model, "get", side_effect=Exception("Invalid image")
+            ):
+                detector.detect_faces(zero_img)
         except Exception:
             # Zero-sized images may cause model errors, which is expected
             pass

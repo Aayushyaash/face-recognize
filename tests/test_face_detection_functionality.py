@@ -1,10 +1,11 @@
 """Unit tests for face detection functionality."""
 
-import numpy as np
-import pytest
 from unittest.mock import Mock, patch
 
-from src.face_recognize.config import AppConfig, DEFAULT_CONFIG
+import numpy as np
+import pytest
+
+from src.face_recognize.config import DEFAULT_CONFIG, AppConfig
 from src.face_recognize.core.detector import FaceDetector
 from src.face_recognize.core.models import BoundingBox, Face
 
@@ -12,17 +13,17 @@ from src.face_recognize.core.models import BoundingBox, Face
 class TestFaceDetectionFunctionality:
     """Test cases for face detection functionality."""
 
-    @patch('insightface.app.FaceAnalysis')
+    @patch("insightface.app.FaceAnalysis")
     def test_detect_faces_method(self, mock_face_analysis):
         """Test the detect_faces method."""
         # Mock the InsightFace app
         mock_app = Mock()
         mock_app.get.return_value = [
             {
-                'bbox': np.array([10, 20, 110, 120]),  # [x1, y1, x2, y2]
-                'kps': np.random.rand(5, 2),  # 5 facial landmarks
-                'det_score': 0.85,  # Detection confidence
-                'embedding': np.random.rand(512)  # 512-dim embedding
+                "bbox": np.array([10, 20, 110, 120]),  # [x1, y1, x2, y2]
+                "kps": np.random.rand(5, 2),  # 5 facial landmarks
+                "det_score": 0.85,  # Detection confidence
+                "embedding": np.random.rand(512),  # 512-dim embedding
             }
         ]
         mock_face_analysis.return_value = mock_app
@@ -46,24 +47,24 @@ class TestFaceDetectionFunctionality:
         assert face.bbox.y2 == 120
         assert face.embedding.shape == (512,)
 
-    @patch('insightface.app.FaceAnalysis')
+    @patch("insightface.app.FaceAnalysis")
     def test_detect_faces_with_boxes_and_confidence_method(self, mock_face_analysis):
         """Test the detect_faces_with_boxes_and_confidence method."""
         # Mock the InsightFace app
         mock_app = Mock()
         mock_app.get.return_value = [
             {
-                'bbox': np.array([10, 20, 110, 120]),
-                'kps': np.random.rand(5, 2),
-                'det_score': 0.85,
-                'embedding': np.random.rand(512)
+                "bbox": np.array([10, 20, 110, 120]),
+                "kps": np.random.rand(5, 2),
+                "det_score": 0.85,
+                "embedding": np.random.rand(512),
             },
             {
-                'bbox': np.array([200, 150, 300, 250]),
-                'kps': np.random.rand(5, 2),
-                'det_score': 0.92,
-                'embedding': np.random.rand(512)
-            }
+                "bbox": np.array([200, 150, 300, 250]),
+                "kps": np.random.rand(5, 2),
+                "det_score": 0.92,
+                "embedding": np.random.rand(512),
+            },
         ]
         mock_face_analysis.return_value = mock_app
 
@@ -113,7 +114,7 @@ class TestFaceDetectionFunctionality:
         # Threshold should still be the original value
         assert detector.get_threshold() == 0.7
 
-    @patch('insightface.app.FaceAnalysis')
+    @patch("insightface.app.FaceAnalysis")
     def test_change_model(self, mock_face_analysis):
         """Test changing the InsightFace model."""
         # Mock the InsightFace app
@@ -126,21 +127,21 @@ class TestFaceDetectionFunctionality:
         assert detector.model_name == DEFAULT_CONFIG.model
 
         # Change to buffalo_l
-        detector.change_model('buffalo_l')
-        assert detector.model_name == 'buffalo_l'
+        detector.change_model("buffalo_l")
+        assert detector.model_name == "buffalo_l"
 
         # Change to buffalo_sc
-        detector.change_model('buffalo_sc')
-        assert detector.model_name == 'buffalo_sc'
+        detector.change_model("buffalo_sc")
+        assert detector.model_name == "buffalo_sc"
 
     def test_change_model_invalid_name(self):
         """Test changing to an unsupported model."""
-        config = AppConfig(model='buffalo_s')
+        config = AppConfig(model="buffalo_s")
         detector = FaceDetector(config=config)
 
         # Try to change to an unsupported model
         with pytest.raises(ValueError):
-            detector.change_model('unsupported_model')
+            detector.change_model("unsupported_model")
 
         # Model should still be the original
-        assert detector.model_name == 'buffalo_s'
+        assert detector.model_name == "buffalo_s"

@@ -50,9 +50,9 @@ class AppConfig:
     frame_height: int = 480
 
     # Visualization settings
-    known_color: tuple[int, int, int] = (0, 255, 0)    # Green BGR
+    known_color: tuple[int, int, int] = (0, 255, 0)  # Green BGR
     unknown_color: tuple[int, int, int] = (0, 0, 255)  # Red BGR
-    text_color: tuple[int, int, int] = (255, 255, 255) # White BGR
+    text_color: tuple[int, int, int] = (255, 255, 255)  # White BGR
     box_thickness: int = 2
     font_scale: float = 0.6
 
