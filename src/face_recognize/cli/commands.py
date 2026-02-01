@@ -166,7 +166,11 @@ def cmd_register(args: argparse.Namespace, config: AppConfig) -> int:
         return 1
 
     if len(faces) > 1:
-        print(f"Error: Multiple faces detected ({len(faces)}). Please use an image with exactly one face.", file=sys.stderr)
+        print(
+            f"Error: Multiple faces detected ({len(faces)}). "
+            "Please use an image with exactly one face.",
+            file=sys.stderr,
+        )
         return 1
 
     face = faces[0]
@@ -185,7 +189,7 @@ def cmd_register(args: argparse.Namespace, config: AppConfig) -> int:
 
     try:
         record = database.add(name, face.embedding)
-        print(f"✓ Registered \"{name}\" successfully (ID: {record.id[:8]})")
+        print(f'✓ Registered "{name}" successfully (ID: {record.id[:8]})')
         return 0
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -245,10 +249,10 @@ def cmd_delete(args: argparse.Namespace, config: AppConfig) -> int:
     database = JsonDatabase(config.database_path)
 
     if database.delete(name):
-        print(f"✓ Deleted \"{name}\" from database")
+        print(f'✓ Deleted "{name}" from database')
         return 0
     else:
-        print(f"Error: Person \"{name}\" not found in database", file=sys.stderr)
+        print(f'Error: Person "{name}" not found in database', file=sys.stderr)
         return 1
 
 
@@ -272,7 +276,7 @@ def cmd_info(args: argparse.Namespace, config: AppConfig) -> int:
     person = database.get(name)
 
     if person is None:
-        print(f"Error: Person \"{name}\" not found in database", file=sys.stderr)
+        print(f'Error: Person "{name}" not found in database', file=sys.stderr)
         return 1
 
     print(f"Name: {person.name}")
