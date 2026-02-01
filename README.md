@@ -70,8 +70,8 @@ Press 'q' to quit the camera window.
 ### Using the Face Detection Module
 
 ```python
-from src.face_recognize.core.detector import FaceDetector
-from src.face_recognize.config import DEFAULT_CONFIG
+from face_recognize.core.detector import FaceDetector
+from face_recognize.config import DEFAULT_CONFIG
 import cv2
 
 # Initialize the face detector

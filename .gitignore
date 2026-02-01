@@ -42,7 +42,7 @@ Thumbs.db
 
 # Data
 data/
-*.json
+data/*.json
 
 # Logs
 *.log
