@@ -8,7 +8,7 @@ facial landmarks, and face embeddings.
 from typing import Any, List
 
 import cv2
-import insightface  # type: ignore[import-untyped]
+import insightface
 import numpy as np
 import numpy.typing as npt
 

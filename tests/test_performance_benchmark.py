@@ -11,7 +11,7 @@ from src.face_recognize.core.detector import FaceDetector
 class TestPerformanceBenchmark:
     """Performance benchmark tests for face detection."""
 
-    def test_performance_benchmark_under_100ms(self):
+    def test_performance_benchmark_under_100ms(self) -> None:
         """Test that face detection runs under 100ms per frame."""
         # Note: Since we can't load the actual model in tests without downloading it,
         # we'll simulate the performance test by measuring the overhead of our code
@@ -65,7 +65,7 @@ class TestPerformanceBenchmark:
             execution_time_ms < 1000
         ), f"Face detection took {execution_time_ms:.2f} ms, which is too slow"
 
-    def test_performance_multiple_calls(self):
+    def test_performance_multiple_calls(self) -> None:
         """Test performance with multiple sequential calls."""
         detector = FaceDetector(config=DEFAULT_CONFIG)
 
@@ -105,7 +105,7 @@ class TestPerformanceBenchmark:
             avg_time_per_call < 1000
         ), f"Average face detection time {avg_time_per_call:.2f} ms is too slow"
 
-    def test_performance_with_many_faces(self):
+    def test_performance_with_many_faces(self) -> None:
         """Test performance when detecting many faces in one image."""
         detector = FaceDetector(config=DEFAULT_CONFIG)
 

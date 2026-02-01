@@ -8,7 +8,7 @@ from src.face_recognize.config import DEFAULT_CONFIG
 from src.face_recognize.core.detector import FaceDetector
 
 
-def test_performance_requirements_verification():
+def test_performance_requirements_verification() -> None:
     """Verify that performance requirements are met."""
     # Since we can't run the actual model without downloading it,
     # we'll measure the overhead of our implementation
@@ -48,7 +48,7 @@ def test_performance_requirements_verification():
         assert avg_time < 100, f"Avg time {avg_time:.2f} ms exceeds 100ms"
 
 
-def test_latency_optimization_verification():
+def test_latency_optimization_verification() -> None:
     """Verify that latency optimizations are effective."""
     detector = FaceDetector(config=DEFAULT_CONFIG)
 
