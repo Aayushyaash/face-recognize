@@ -164,6 +164,8 @@ The system consists of several key components:
 - **Face Tracker**: Maintains persistent IDs across video frames using IoU matching
 - **Identification Service**: Matches embeddings against the local database
 - **Database Backend**: Stores registered faces in JSON format
+  - **PersonRecord**: Data class for storing face records with ID, name, embedding, and timestamp
+  - **JsonDatabase**: Thread-safe database with atomic write operations, supporting CRUD operations and similarity search
 - **Visualization Layer**: Draws bounding boxes and labels on the video feed
 
 For implementation details, see the Architecture section above.

@@ -6,7 +6,7 @@ combined with embedding similarity verification.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -89,9 +89,7 @@ class FaceTracker:
         iou_matrix = compute_pairwise_iou(face_bboxes, track_bboxes)
 
         # Stage 2: Find best matches using greedy algorithm
-        matches, unmatched_faces, unmatched_tracks = self._match(
-            iou_matrix, faces
-        )
+        matches, unmatched_faces, unmatched_tracks = self._match(iou_matrix, faces)
 
         # Stage 3: Update matched tracks and create output faces
         output_faces: list[Face] = []
@@ -128,8 +126,7 @@ class FaceTracker:
 
         # Stage 6: Remove stale tracks
         self._tracks = [
-            track for track in self._tracks
-            if track.age < self.config.max_track_age
+            track for track in self._tracks if track.age < self.config.max_track_age
         ]
 
         return output_faces
@@ -232,8 +229,7 @@ class FaceTracker:
             track.age += 1
 
         self._tracks = [
-            track for track in self._tracks
-            if track.age < self.config.max_track_age
+            track for track in self._tracks if track.age < self.config.max_track_age
         ]
 
     def reset(self) -> None:

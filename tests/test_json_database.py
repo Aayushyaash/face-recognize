@@ -1,16 +1,16 @@
 """Unit tests for the JsonDatabase class in the database module."""
 
-import json
-import tempfile
 import os
+import tempfile
 from pathlib import Path
+
 import numpy as np
 import pytest
 
-from src.face_recognize.database.json_backend import JsonDatabase, PersonRecord
+from src.face_recognize.database.json_backend import JsonDatabase
 
 
-def test_json_database_initialization():
+def test_json_database_initialization() -> None:
     """Test initializing a JsonDatabase instance."""
     # Create a temporary file path, but don't create the file yet
     db_path = Path(tempfile.mktemp())
@@ -26,7 +26,7 @@ def test_json_database_initialization():
             os.unlink(db_path)
 
 
-def test_json_database_add_person():
+def test_json_database_add_person() -> None:
     """Test adding a person to the database."""
     # Create a temporary file path, but don't create the file yet
     db_path = Path(tempfile.mktemp())
@@ -53,7 +53,7 @@ def test_json_database_add_person():
             os.unlink(db_path)
 
 
-def test_json_database_duplicate_name():
+def test_json_database_duplicate_name() -> None:
     """Test that adding a person with duplicate name raises an error."""
     # Create a temporary file path, but don't create the file yet
     db_path = Path(tempfile.mktemp())
@@ -64,10 +64,12 @@ def test_json_database_duplicate_name():
         embedding2 = np.random.rand(512).astype(np.float32)
 
         # Add first person
-        db.add("John Doe", embedding1)
+        _ = db.add("John Doe", embedding1)
 
         # Attempt to add another person with same name (case-insensitive)
-        with pytest.raises(ValueError, match=r"Person 'john doe' already exists in database"):
+        with pytest.raises(
+            ValueError, match=r"Person 'john doe' already exists in database"
+        ):
             db.add("john doe", embedding2)  # Lowercase should also conflict
     finally:
         # Clean up
@@ -75,7 +77,7 @@ def test_json_database_duplicate_name():
             os.unlink(db_path)
 
 
-def test_json_database_invalid_embedding_shape():
+def test_json_database_invalid_embedding_shape() -> None:
     """Test that adding a person with invalid embedding shape raises an error."""
     # Create a temporary file path, but don't create the file yet
     db_path = Path(tempfile.mktemp())
@@ -92,7 +94,7 @@ def test_json_database_invalid_embedding_shape():
             os.unlink(db_path)
 
 
-def test_json_database_get_person():
+def test_json_database_get_person() -> None:
     """Test retrieving a person from the database."""
     # Create a temporary file path, but don't create the file yet
     db_path = Path(tempfile.mktemp())
@@ -102,7 +104,7 @@ def test_json_database_get_person():
         embedding = np.random.rand(512).astype(np.float32)
 
         # Add a person
-        original_record = db.add("Jane Smith", embedding)
+        _ = db.add("Jane Smith", embedding)
 
         # Retrieve the person (case-insensitive)
         retrieved_record = db.get("jane smith")
@@ -119,7 +121,7 @@ def test_json_database_get_person():
             os.unlink(db_path)
 
 
-def test_json_database_delete_person():
+def test_json_database_delete_person() -> None:
     """Test deleting a person from the database."""
     # Create a temporary file path, but don't create the file yet
     db_path = Path(tempfile.mktemp())
@@ -146,7 +148,7 @@ def test_json_database_delete_person():
             os.unlink(db_path)
 
 
-def test_json_database_list_all_and_count():
+def test_json_database_list_all_and_count() -> None:
     """Test listing all persons and counting them."""
     # Create a temporary file path, but don't create the file yet
     db_path = Path(tempfile.mktemp())
@@ -178,38 +180,38 @@ def test_json_database_list_all_and_count():
             os.unlink(db_path)
 
 
-def test_json_database_save_and_load():
+def test_json_database_save_and_load() -> None:
     """Test saving to and loading from JSON file."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         db_path = Path(tmp_dir) / "test_db.json"
-        
+
         # Create and populate database
         db1 = JsonDatabase(db_path)
         embedding1 = np.random.rand(512).astype(np.float32)
         embedding2 = np.random.rand(512).astype(np.float32)
-        
-        record1 = db1.add("Alice Johnson", embedding1)
-        record2 = db1.add("Bob Wilson", embedding2)
-        
+
+        _ = db1.add("Alice Johnson", embedding1)
+        _ = db1.add("Bob Wilson", embedding2)
+
         # Close and reopen database
         del db1
         db2 = JsonDatabase(db_path)
-        
+
         # Verify data was saved and loaded correctly
         assert db2.count() == 2
-        
+
         alice = db2.get("Alice Johnson")
         assert alice is not None
         assert alice.name == "Alice Johnson"
         assert np.array_equal(alice.embedding, embedding1)
-        
+
         bob = db2.get("Bob Wilson")
         assert bob is not None
         assert bob.name == "Bob Wilson"
         assert np.array_equal(bob.embedding, embedding2)
 
 
-def test_json_database_search_by_embedding():
+def test_json_database_search_by_embedding() -> None:
     """Test searching for a person by embedding similarity."""
     # Create a temporary file path, but don't create the file yet
     db_path = Path(tempfile.mktemp())
@@ -222,8 +224,8 @@ def test_json_database_search_by_embedding():
         embedding2 /= np.linalg.norm(embedding2)  # Normalize
 
         # Add two people to the database
-        record1 = db.add("Alice Johnson", embedding1)
-        record2 = db.add("Bob Wilson", embedding2)
+        _ = db.add("Alice Johnson", embedding1)
+        _ = db.add("Bob Wilson", embedding2)
 
         # Search for Alice with her own embedding (should find exact match)
         match, score = db.search_by_embedding(embedding1, 0.5)
@@ -243,7 +245,7 @@ def test_json_database_search_by_embedding():
             os.unlink(db_path)
 
 
-def test_json_database_empty_search():
+def test_json_database_empty_search() -> None:
     """Test searching in an empty database."""
     # Create a temporary file path, but don't create the file yet
     db_path = Path(tempfile.mktemp())
