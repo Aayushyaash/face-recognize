@@ -38,7 +38,7 @@ pip install uv
 uv pip install -e ".[dev]"
 ```
 
-> **Note:** This is currently a development/personal project. PyPI package not yet published.
+> **Note:** This is a development/personal project.
 
 ---
 
