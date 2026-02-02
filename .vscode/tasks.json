@@ -37,6 +37,13 @@
             "problemMatcher": []
         },
         {
+            "label": "Security Scan",
+            "type": "shell",
+            "command": "uv run pip install bandit pip-audit && uv run bandit -r src/ && uv run pip-audit .",
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
             "label": "Run App",
             "type": "shell",
             "command": "uv run face-recognize run",
