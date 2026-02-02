@@ -10,7 +10,7 @@ from src.face_recognize.core.models import BoundingBox, Face
 from src.face_recognize.core.tracker import FaceTracker
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture
 def sample_config() -> AppConfig:
     """Returns AppConfig with known thresholds."""
     return AppConfig(
@@ -32,7 +32,7 @@ def sample_config() -> AppConfig:
     )
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture
 def mock_faces() -> list[Face]:
     """Returns a list of Face objects for testing updates."""
     embedding1 = np.random.rand(512).astype(np.float32)

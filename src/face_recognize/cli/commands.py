@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import argparse
 import platform
-import sys
 import time
 from dataclasses import replace
 from pathlib import Path
@@ -16,6 +15,7 @@ import cv2
 
 from ..config import AppConfig
 from ..core.detector import FaceDetector
+from ..core.logger import logger
 from ..core.tracker import FaceTracker
 from ..database.json_backend import JsonDatabase
 from ..services.identification import IdentificationService
@@ -39,15 +39,15 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
         model=args.model,
         similarity_threshold=args.threshold,
     )
-    print(f"Initializing with model: {config.model}")
-    print(f"Similarity threshold: {config.similarity_threshold}")
+    logger.info(f"Initializing with model: {config.model}")
+    logger.info(f"Similarity threshold: {config.similarity_threshold}")
 
     # Initialize components
     try:
         detector = FaceDetector(config)
     except Exception as e:
-        print(f"Error initializing face detector: {e}", file=sys.stderr)
-        print("Make sure the model is downloaded to ./models/", file=sys.stderr)
+        logger.error(f"Error initializing face detector: {e}")
+        logger.error("Make sure the model is downloaded to ./models/")
         return 1
 
     tracker = FaceTracker(config)
@@ -55,7 +55,7 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
     identifier = IdentificationService(database, config)
     renderer = FaceRenderer(config)
 
-    print(f"Database loaded: {database.count()} persons")
+    logger.info(f"Database loaded: {database.count()} persons")
 
     # Open camera
     backend = cv2.CAP_ANY
@@ -68,14 +68,14 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
         cap = cv2.VideoCapture(config.camera_index)
 
     if not cap.isOpened():
-        print(f"Error: Could not open camera {config.camera_index}", file=sys.stderr)
+        logger.error(f"Error: Could not open camera {config.camera_index}")
         return 1
 
     # Set camera resolution
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.frame_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.frame_height)
 
-    print(f"Camera {config.camera_index} opened. Press 'q' to quit.")
+    logger.info(f"Camera {config.camera_index} opened. Press 'q' to quit.")
 
     # FPS calculation
     frame_times: list[float] = []
@@ -95,12 +95,10 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
                 consecutive_failures += 1
                 msg = f"Warning: Camera read failure ({consecutive_failures}/"
                 msg += f"{max_retries})"
-                print(msg, file=sys.stderr)
+                logger.warning(msg)
 
                 if consecutive_failures >= max_retries:
-                    print(
-                        "Error: Max camera failures reached. Exiting.", file=sys.stderr
-                    )
+                    logger.error("Error: Max camera failures reached. Exiting.")
                     break
 
                 # Attempt to reconnect
@@ -112,9 +110,8 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
                     cap = cv2.VideoCapture(config.camera_index)
 
                 if not cap.isOpened():
-                    print(
-                        f"Error: Could not reopen camera {config.camera_index}",
-                        file=sys.stderr,
+                    logger.error(
+                        f"Error: Could not reopen camera {config.camera_index}"
                     )
                     break
 
@@ -154,7 +151,7 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
             # Check for quit key
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):
-                print("Quitting...")
+                logger.info("Quitting...")
                 break
 
     finally:
@@ -179,26 +176,26 @@ def cmd_register(args: argparse.Namespace, config: AppConfig) -> int:
 
     # Validate inputs
     if not image_path.exists():
-        print(f"Error: Image file not found: {image_path}", file=sys.stderr)
+        logger.error(f"Error: Image file not found: {image_path}")
         return 1
 
     if not name:
-        print("Error: Name cannot be empty", file=sys.stderr)
+        logger.error("Error: Name cannot be empty")
         return 1
 
     # Load image
     image = cv2.imread(str(image_path))
     if image is None:
-        print(f"Error: Could not read image: {image_path}", file=sys.stderr)
+        logger.error(f"Error: Could not read image: {image_path}")
         return 1
 
-    print(f"Processing image: {image_path}")
+    logger.info(f"Processing image: {image_path}")
 
     # Initialize detector
     try:
         detector = FaceDetector(config)
     except Exception as e:
-        print(f"Error initializing detector: {e}", file=sys.stderr)
+        logger.error(f"Error initializing detector: {e}")
         return 1
 
     # Detect faces
@@ -206,14 +203,13 @@ def cmd_register(args: argparse.Namespace, config: AppConfig) -> int:
 
     # Validate exactly one face
     if len(faces) == 0:
-        print("Error: No face detected in image", file=sys.stderr)
+        logger.error("Error: No face detected in image")
         return 1
 
     if len(faces) > 1:
-        print(
+        logger.error(
             f"Error: Multiple faces detected ({len(faces)}). "
-            "Please use an image with exactly one face.",
-            file=sys.stderr,
+            "Please use an image with exactly one face."
         )
         return 1
 
@@ -221,10 +217,9 @@ def cmd_register(args: argparse.Namespace, config: AppConfig) -> int:
 
     # Validate face quality (using confidence as proxy)
     if face.confidence < config.min_quality_score:
-        print(
+        logger.error(
             f"Error: Face quality too low ({face.confidence:.2f}). "
-            f"Minimum required: {config.min_quality_score}",
-            file=sys.stderr,
+            f"Minimum required: {config.min_quality_score}"
         )
         return 1
 
@@ -233,10 +228,10 @@ def cmd_register(args: argparse.Namespace, config: AppConfig) -> int:
 
     try:
         record = database.add(name, face.embedding)
-        print(f'✓ Registered "{name}" successfully (ID: {record.id[:8]})')
+        logger.info(f'✓ Registered "{name}" successfully (ID: {record.id[:8]})')
         return 0
     except ValueError as e:
-        print(f"Error: {e}", file=sys.stderr)
+        logger.error(f"Error: {e}")
         return 1
 
 
@@ -254,10 +249,10 @@ def cmd_list(args: argparse.Namespace, config: AppConfig) -> int:
     persons = database.list_all()
 
     if not persons:
-        print("No registered persons.")
+        logger.info("No registered persons.")
         return 0
 
-    print(f"Registered Persons ({len(persons)}):")
+    logger.info(f"Registered Persons ({len(persons)}):")
     for i, person in enumerate(persons, 1):
         # Parse and format timestamp
         try:
@@ -269,7 +264,7 @@ def cmd_list(args: argparse.Namespace, config: AppConfig) -> int:
         except (IndexError, ValueError):
             formatted_time = person.created_at
 
-        print(f"  {i}. {person.name:<20} (registered: {formatted_time})")
+        logger.info(f"  {i}. {person.name:<20} (registered: {formatted_time})")
 
     return 0
 
@@ -287,16 +282,16 @@ def cmd_delete(args: argparse.Namespace, config: AppConfig) -> int:
     name: str = args.name.strip()
 
     if not name:
-        print("Error: Name cannot be empty", file=sys.stderr)
+        logger.error("Error: Name cannot be empty")
         return 1
 
     database = JsonDatabase(config.database_path)
 
     if database.delete(name):
-        print(f'✓ Deleted "{name}" from database')
+        logger.info(f'✓ Deleted "{name}" from database')
         return 0
     else:
-        print(f'Error: Person "{name}" not found in database', file=sys.stderr)
+        logger.error(f'Error: Person "{name}" not found in database')
         return 1
 
 
@@ -313,22 +308,24 @@ def cmd_info(args: argparse.Namespace, config: AppConfig) -> int:
     name: str = args.name.strip()
 
     if not name:
-        print("Error: Name cannot be empty", file=sys.stderr)
+        logger.error("Error: Name cannot be empty")
         return 1
 
     database = JsonDatabase(config.database_path)
     person = database.get(name)
 
     if person is None:
-        print(f'Error: Person "{name}" not found in database', file=sys.stderr)
+        logger.error(f'Error: Person "{name}" not found in database')
         return 1
 
-    print(f"Name: {person.name}")
-    print(f"ID: {person.id}")
-    print(f"Registered: {person.created_at}")
+    logger.info(f"Name: {person.name}")
+    logger.info(f"ID: {person.id}")
+    logger.info(f"Registered: {person.created_at}")
 
     # Show first few embedding values
     embedding_preview = ", ".join(f"{v:.4f}" for v in person.embedding[:5])
-    print(f"Embedding: [{embedding_preview}, ...] ({len(person.embedding)} dimensions)")
+    logger.info(
+        f"Embedding: [{embedding_preview}, ...] ({len(person.embedding)} dimensions)"
+    )
 
     return 0

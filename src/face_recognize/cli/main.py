@@ -135,6 +135,12 @@ def main() -> int:
     # Create config with any command-line overrides
     config = AppConfig()
 
+    # Initialize logging
+    from ..core.logger import setup_logger
+
+    log_file = Path("logs/face_recognize.log")
+    setup_logger(log_file=log_file)
+
     # Dispatch to appropriate command handler
     try:
         if args.command == "run":

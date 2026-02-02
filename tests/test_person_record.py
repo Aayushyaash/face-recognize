@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from src.face_recognize.database.json_backend import PersonRecord
+from src.face_recognize.database import PersonRecord
 
 
 def test_person_record_creation() -> None:

@@ -16,14 +16,14 @@ from src.face_recognize.services.identification import (
 )
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture
 def mock_db() -> mock.Mock:
     """Mocked JsonDatabase with search_by_embedding method."""
     db_mock = mock.Mock(spec=JsonDatabase)
     return db_mock
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture
 def service(mock_db: mock.Mock) -> IdentificationService:
     """IdentificationService instance using mock_db."""
     config = AppConfig(
@@ -175,7 +175,7 @@ def test_identify_db_query(service: IdentificationService, mock_db: mock.Mock) -
     )
 
     # Mock the database response for a known person
-    from src.face_recognize.database.json_backend import PersonRecord
+    from src.face_recognize.database import PersonRecord
 
     mock_person = PersonRecord(
         id="test_id_123",
