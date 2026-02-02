@@ -10,63 +10,16 @@ import json
 import os
 import tempfile
 import uuid
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 
-
-@dataclass
-class PersonRecord:
-    """A stored person record in the database.
-
-    Attributes:
-        id: Unique identifier (UUID4 string).
-        name: Person's display name.
-        embedding: 512-dimensional normalized face embedding.
-        created_at: ISO 8601 timestamp of registration.
-    """
-
-    id: str
-    name: str
-    embedding: npt.NDArray[np.float32]
-    created_at: str
-
-    def to_dict(self) -> dict[str, Any]:
-        """Convert record to JSON-serializable dictionary.
-
-        Returns:
-            Dictionary with id, name, embedding (as list), created_at.
-        """
-        return {
-            "id": self.id,
-            "name": self.name,
-            "embedding": self.embedding.tolist(),
-            "created_at": self.created_at,
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> PersonRecord:
-        """Create PersonRecord from dictionary.
-
-        Args:
-            data: Dictionary with id, name, embedding, created_at keys.
-
-        Returns:
-            PersonRecord instance.
-        """
-        return cls(
-            id=data["id"],
-            name=data["name"],
-            embedding=np.array(data["embedding"], dtype=np.float32),
-            created_at=data["created_at"],
-        )
+from .base import DatabaseBackend, PersonRecord
 
 
-class JsonDatabase:
+class JsonDatabase(DatabaseBackend):
     """JSON file-based database for face records.
 
     Thread-safe atomic writes using temp file + rename pattern.

@@ -1,5 +1,6 @@
 """Database backends for face storage."""
 
-from .json_backend import JsonDatabase, PersonRecord
+from .base import DatabaseBackend, PersonRecord
+from .json_backend import JsonDatabase
 
-__all__ = ["JsonDatabase", "PersonRecord"]
+__all__ = ["DatabaseBackend", "JsonDatabase", "PersonRecord"]
