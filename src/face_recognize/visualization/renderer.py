@@ -9,7 +9,9 @@ from __future__ import annotations
 from typing import Any
 
 import cv2
+import numpy as np
 import numpy.typing as npt
+from PIL import Image, ImageDraw, ImageFont
 
 from ..config import AppConfig
 from ..services.identification import IdentifiedFace
@@ -34,6 +36,15 @@ class FaceRenderer:
             config: Application configuration with visualization settings.
         """
         self.config = config
+
+        # Initialize font with fallback strategy
+        try:
+            # Try to load arial.ttf (Windows standard)
+            font_obj = ImageFont.truetype("arial.ttf", size=20)
+            self.font: ImageFont.ImageFont | ImageFont.FreeTypeFont = font_obj
+        except OSError:
+            # Fallback to default font
+            self.font = ImageFont.load_default()
 
     def render(
         self,
@@ -93,14 +104,16 @@ class FaceRenderer:
         else:
             label = "Unknown"
 
-        # Calculate text size for background
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = self.config.font_scale
-        thickness = 1
+        # Convert BGR (OpenCV) -> RGB (PIL) only once per frame
+        # We'll do this per label for now, but could optimize to do once per frame
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(frame_rgb)
+        draw = ImageDraw.Draw(pil_image)
 
-        (text_width, text_height), baseline = cv2.getTextSize(
-            label, font, font_scale, thickness
-        )
+        # Calculate text size for background
+        bbox = draw.textbbox((0, 0), label, font=self.font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
 
         # Position label above bounding box
         # Ensure label doesn't go above frame
@@ -109,7 +122,7 @@ class FaceRenderer:
 
         # Draw black background rectangle for readability
         bg_pt1 = (label_x, label_y - text_height - 5)
-        bg_pt2 = (label_x + text_width + 4, label_y + baseline - 5)
+        bg_pt2 = (label_x + text_width + 4, label_y + 5)
 
         # Select background color (darker version of box color)
         if face.is_known:
@@ -117,32 +130,30 @@ class FaceRenderer:
         else:
             bg_color = (0, 0, 128)  # Dark red
 
-        cv2.rectangle(frame, bg_pt1, bg_pt2, bg_color, cv2.FILLED)
+        draw.rectangle((*bg_pt1, *bg_pt2), fill=bg_color)
 
         # Draw text with outline for better visibility
         # First draw black outline
-        cv2.putText(
-            frame,
-            label,
-            (label_x + 2, label_y - 5),
-            font,
-            font_scale,
-            (0, 0, 0),  # Black outline
-            thickness + 1,
-            cv2.LINE_AA,
-        )
+        outline_positions = [
+            (label_x + 1, label_y - 5),
+            (label_x + 3, label_y - 5),
+            (label_x + 2, label_y - 6),
+            (label_x + 2, label_y - 4),
+        ]
+
+        for pos in outline_positions:
+            draw.text(pos, label, font=self.font, fill=(0, 0, 0))
 
         # Then draw white text on top
-        cv2.putText(
-            frame,
-            label,
+        draw.text(
             (label_x + 2, label_y - 5),
-            font,
-            font_scale,
-            self.config.text_color,
-            thickness,
-            cv2.LINE_AA,
+            label,
+            font=self.font,
+            fill=self.config.text_color,
         )
+
+        # Convert RGB (PIL) -> BGR (OpenCV)
+        frame[:] = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
 
     def render_fps(self, frame: npt.NDArray[Any], fps: float) -> None:
         """Render FPS counter in top-left corner.
@@ -152,16 +163,17 @@ class FaceRenderer:
             fps: Current frames per second.
         """
         label = f"FPS: {fps:.1f}"
-        cv2.putText(
-            frame,
-            label,
-            (10, 30),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
-            (0, 255, 0),
-            2,
-            cv2.LINE_AA,
-        )
+
+        # Convert BGR (OpenCV) -> RGB (PIL)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(frame_rgb)
+        draw = ImageDraw.Draw(pil_image)
+
+        # Draw text
+        draw.text((10, 10), label, font=self.font, fill=(0, 255, 0))
+
+        # Convert RGB (PIL) -> BGR (OpenCV)
+        frame[:] = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
 
     def render_status(self, frame: npt.NDArray[Any], message: str) -> None:
         """Render status message at bottom of frame.
@@ -171,13 +183,14 @@ class FaceRenderer:
             message: Status message to display.
         """
         height = frame.shape[0]
-        cv2.putText(
-            frame,
-            message,
-            (10, height - 20),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
-            (255, 255, 255),
-            1,
-            cv2.LINE_AA,
-        )
+
+        # Convert BGR (OpenCV) -> RGB (PIL)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(frame_rgb)
+        draw = ImageDraw.Draw(pil_image)
+
+        # Draw text
+        draw.text((10, height - 30), message, font=self.font, fill=(255, 255, 255))
+
+        # Convert RGB (PIL) -> BGR (OpenCV)
+        frame[:] = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)

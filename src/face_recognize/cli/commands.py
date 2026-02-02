@@ -81,6 +81,10 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
     frame_times: list[float] = []
     fps = 0.0
 
+    # Camera failure handling
+    max_retries = 5
+    consecutive_failures = 0
+
     try:
         while True:
             frame_start = time.time()
@@ -88,8 +92,40 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
             # Capture frame
             ret, frame = cap.read()
             if not ret:
-                print("Error: Failed to capture frame", file=sys.stderr)
-                break
+                consecutive_failures += 1
+                msg = f"Warning: Camera read failure ({consecutive_failures}/"
+                msg += f"{max_retries})"
+                print(msg, file=sys.stderr)
+
+                if consecutive_failures >= max_retries:
+                    print(
+                        "Error: Max camera failures reached. Exiting.", file=sys.stderr
+                    )
+                    break
+
+                # Attempt to reconnect
+                cap.release()
+                time.sleep(1)
+                cap = cv2.VideoCapture(config.camera_index, backend)
+                if not cap.isOpened():
+                    # Fallback to default if DSHOW fails
+                    cap = cv2.VideoCapture(config.camera_index)
+
+                if not cap.isOpened():
+                    print(
+                        f"Error: Could not reopen camera {config.camera_index}",
+                        file=sys.stderr,
+                    )
+                    break
+
+                # Set camera resolution again after reopening
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.frame_width)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.frame_height)
+
+                continue
+
+            # successful read
+            consecutive_failures = 0
 
             # Detect faces
             faces = detector.detect_faces(frame)
