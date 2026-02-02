@@ -6,6 +6,7 @@ Each command function takes parsed args and config, returns exit code.
 from __future__ import annotations
 
 import argparse
+import platform
 import sys
 import time
 from dataclasses import replace
@@ -38,7 +39,6 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
         model=args.model,
         similarity_threshold=args.threshold,
     )
-
     print(f"Initializing with model: {config.model}")
     print(f"Similarity threshold: {config.similarity_threshold}")
 
@@ -58,7 +58,15 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
     print(f"Database loaded: {database.count()} persons")
 
     # Open camera
-    cap = cv2.VideoCapture(config.camera_index)
+    backend = cv2.CAP_ANY
+    if platform.system() == "Windows":
+        backend = cv2.CAP_DSHOW
+
+    cap = cv2.VideoCapture(config.camera_index, backend)
+    if not cap.isOpened():
+        # Fallback to default if DSHOW fails
+        cap = cv2.VideoCapture(config.camera_index)
+
     if not cap.isOpened():
         print(f"Error: Could not open camera {config.camera_index}", file=sys.stderr)
         return 1
