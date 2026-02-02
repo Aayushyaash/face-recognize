@@ -8,7 +8,7 @@ from src.face_recognize.config import DEFAULT_CONFIG
 from src.face_recognize.core.detector import FaceDetector
 
 
-def test_integration_with_sample_images():
+def test_integration_with_sample_images() -> None:
     """Perform integration testing with sample images."""
     detector = FaceDetector(config=DEFAULT_CONFIG)
 
@@ -45,7 +45,7 @@ def test_integration_with_sample_images():
             assert face.embedding.shape == (512,)
 
 
-def test_integration_different_thresholds():
+def test_integration_different_thresholds() -> None:
     """Test integration with different confidence thresholds."""
     # Start with default config
     detector = FaceDetector(config=DEFAULT_CONFIG)
@@ -79,7 +79,7 @@ def test_integration_different_thresholds():
         assert len(faces) == 2
 
 
-def test_integration_multiple_models():
+def test_integration_multiple_models() -> None:
     """Test integration with different models."""
     detector = FaceDetector(config=DEFAULT_CONFIG)
 

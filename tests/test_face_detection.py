@@ -12,7 +12,7 @@ from src.face_recognize.core.models import Face
 class TestFaceDetector:
     """Test cases for FaceDetector class."""
 
-    def test_initialization(self):
+    def test_initialization(self) -> None:
         """Test FaceDetector initialization with default config."""
         detector = FaceDetector(config=DEFAULT_CONFIG)
 
@@ -20,7 +20,7 @@ class TestFaceDetector:
         assert detector.threshold == DEFAULT_CONFIG.detection_threshold
 
     @patch("insightface.app.FaceAnalysis")
-    def test_detect_faces_success(self, mock_face_analysis):
+    def test_detect_faces_success(self, mock_face_analysis: Mock) -> None:
         """Test successful face detection."""
         # Mock the InsightFace app
         mock_app = Mock()
@@ -54,7 +54,7 @@ class TestFaceDetector:
         assert face.embedding.shape == (512,)
 
     @patch("insightface.app.FaceAnalysis")
-    def test_detect_faces_below_threshold(self, mock_face_analysis):
+    def test_detect_faces_below_threshold(self, mock_face_analysis: Mock) -> None:
         """Test face detection with confidence below threshold."""
         # Mock the InsightFace app to return a face with low confidence
         mock_app = Mock()
@@ -79,7 +79,7 @@ class TestFaceDetector:
         assert len(faces) == 0
 
     @patch("insightface.app.FaceAnalysis")
-    def test_detect_faces_multiple_faces(self, mock_face_analysis):
+    def test_detect_faces_multiple_faces(self, mock_face_analysis: Mock) -> None:
         """Test face detection with multiple faces."""
         # Mock the InsightFace app to return multiple faces
         mock_app = Mock()
@@ -112,7 +112,7 @@ class TestFaceDetector:
             assert face.confidence >= 0.7
 
     @patch("insightface.app.FaceAnalysis")
-    def test_detect_faces_none_found(self, mock_face_analysis):
+    def test_detect_faces_none_found(self, mock_face_analysis: Mock) -> None:
         """Test face detection when no faces are found."""
         # Mock the InsightFace app to return no faces
         mock_app = Mock()

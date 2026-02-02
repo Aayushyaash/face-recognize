@@ -14,7 +14,7 @@ class TestFaceDetectionFunctionality:
     """Test cases for face detection functionality."""
 
     @patch("insightface.app.FaceAnalysis")
-    def test_detect_faces_method(self, mock_face_analysis):
+    def test_detect_faces_method(self, mock_face_analysis: Mock) -> None:
         """Test the detect_faces method."""
         # Mock the InsightFace app
         mock_app = Mock()
@@ -48,7 +48,9 @@ class TestFaceDetectionFunctionality:
         assert face.embedding.shape == (512,)
 
     @patch("insightface.app.FaceAnalysis")
-    def test_detect_faces_with_boxes_and_confidence_method(self, mock_face_analysis):
+    def test_detect_faces_with_boxes_and_confidence_method(
+        self, mock_face_analysis: Mock
+    ) -> None:
         """Test the detect_faces_with_boxes_and_confidence method."""
         # Mock the InsightFace app
         mock_app = Mock()
@@ -82,7 +84,7 @@ class TestFaceDetectionFunctionality:
         assert confidences[0] >= 0.7  # Above threshold
         assert confidences[1] >= 0.7  # Above threshold
 
-    def test_set_and_get_threshold(self):
+    def test_set_and_get_threshold(self) -> None:
         """Test setting and getting the detection threshold."""
         config = AppConfig(detection_threshold=0.7)
         detector = FaceDetector(config=config)
@@ -98,7 +100,7 @@ class TestFaceDetectionFunctionality:
         detector.set_threshold(0.9)
         assert detector.get_threshold() == 0.9
 
-    def test_set_threshold_invalid_values(self):
+    def test_set_threshold_invalid_values(self) -> None:
         """Test setting invalid threshold values."""
         config = AppConfig(detection_threshold=0.7)
         detector = FaceDetector(config=config)
@@ -115,7 +117,7 @@ class TestFaceDetectionFunctionality:
         assert detector.get_threshold() == 0.7
 
     @patch("insightface.app.FaceAnalysis")
-    def test_change_model(self, mock_face_analysis):
+    def test_change_model(self, mock_face_analysis: Mock) -> None:
         """Test changing the InsightFace model."""
         # Mock the InsightFace app
         mock_app = Mock()
@@ -134,7 +136,7 @@ class TestFaceDetectionFunctionality:
         detector.change_model("buffalo_sc")
         assert detector.model_name == "buffalo_sc"
 
-    def test_change_model_invalid_name(self):
+    def test_change_model_invalid_name(self) -> None:
         """Test changing to an unsupported model."""
         config = AppConfig(model="buffalo_s")
         detector = FaceDetector(config=config)

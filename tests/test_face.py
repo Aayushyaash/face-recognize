@@ -8,7 +8,7 @@ from src.face_recognize.core.models import BoundingBox, Face
 class TestFace:
     """Test cases for Face class."""
 
-    def test_similarity_with_another_face(self):
+    def test_similarity_with_another_face(self) -> None:
         """Test similarity calculation with another face."""
         # Create two faces with normalized embeddings
         embedding1 = np.array([1.0, 0.0, 0.0])  # Normalized
@@ -17,7 +17,7 @@ class TestFace:
         )  # Also normalized (sqrt(0.8^2 + 0.6^2) = 1.0)
 
         bbox = BoundingBox(x1=0, y1=0, x2=10, y2=10)
-        landmarks = np.zeros((5, 2))  # 5 landmarks with 2 coordinates each
+        landmarks = np.zeros((5, 2), dtype=np.float32)
 
         face1 = Face(
             embedding=embedding1, bbox=bbox, confidence=0.9, landmarks=landmarks
@@ -32,13 +32,13 @@ class TestFace:
 
         assert abs(calculated_similarity - expected_similarity) < 0.001
 
-    def test_similarity_to_embedding(self):
+    def test_similarity_to_embedding(self) -> None:
         """Test similarity calculation with an embedding vector."""
         embedding1 = np.array([1.0, 0.0, 0.0])
         embedding2 = np.array([0.6, 0.8, 0.0])  # Normalized
 
         bbox = BoundingBox(x1=0, y1=0, x2=10, y2=10)
-        landmarks = np.zeros((5, 2))
+        landmarks = np.zeros((5, 2), dtype=np.float32)
 
         face = Face(
             embedding=embedding1, bbox=bbox, confidence=0.9, landmarks=landmarks

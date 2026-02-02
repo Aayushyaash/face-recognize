@@ -13,7 +13,9 @@ class TestErrorHandlingScenarios:
     """Test cases for error handling scenarios."""
 
     @patch("insightface.app.FaceAnalysis")
-    def test_error_handling_for_images_with_no_faces(self, mock_face_analysis):
+    def test_error_handling_for_images_with_no_faces(
+        self, mock_face_analysis: Mock
+    ) -> None:
         """Test error handling for images with no faces."""
         # Mock the InsightFace app to return no faces
         mock_app = Mock()
@@ -35,7 +37,7 @@ class TestErrorHandlingScenarios:
         assert len(bboxes) == 0
         assert len(confidences) == 0
 
-    def test_validation_for_image_input_formats(self):
+    def test_validation_for_image_input_formats(self) -> None:
         """Test validation for different image input formats."""
         detector = FaceDetector(config=DEFAULT_CONFIG)
 
@@ -70,7 +72,9 @@ class TestErrorHandlingScenarios:
             pass
 
     @patch("insightface.app.FaceAnalysis")
-    def test_handling_of_corrupted_invalid_images(self, mock_face_analysis):
+    def test_handling_of_corrupted_invalid_images(
+        self, mock_face_analysis: Mock
+    ) -> None:
         """Test handling of corrupted/invalid images."""
         detector = FaceDetector(config=DEFAULT_CONFIG)
 
