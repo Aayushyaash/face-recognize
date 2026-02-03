@@ -62,6 +62,7 @@ models/
 
 # ai workflow files
 .qwen/
+.qwenignore
 
 # Cache directories
 .mypy_cache/
