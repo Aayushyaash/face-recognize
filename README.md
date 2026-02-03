@@ -67,6 +67,23 @@ face-recognize run
 
 Press 'q' to quit the camera window.
 
+### Using IP Cameras / WiFi Streams
+
+To connect to a network camera (including "IP Webcam" Android app):
+
+```bash
+# Connect to an IP camera (RTSP or HTTP)
+face-recognize run --camera "http://192.168.1.100:8080/video"
+
+# Connect to RTSP stream
+face-recognize run --camera "rtsp://user:password@192.168.1.100:554/stream"
+```
+
+**Note for "IP Webcam" App Users:**  
+1. Install "IP Webcam" by Pavel Khlebovich (Thyoni Tech).
+2. Start the server on your phone.
+3. Use the URL format `http://<PHONE_IP>:8080/video`.
+
 ### Using the Face Detection Module
 
 ```python
