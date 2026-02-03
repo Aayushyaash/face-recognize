@@ -1,6 +1,7 @@
 """Unit tests for the PersonRecord dataclass in the database module."""
 
 import numpy as np
+
 from face_recognize.database import PersonRecord
 
 

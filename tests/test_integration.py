@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import numpy as np
+
 from face_recognize.config import DEFAULT_CONFIG
 from face_recognize.core.detector import FaceDetector
 

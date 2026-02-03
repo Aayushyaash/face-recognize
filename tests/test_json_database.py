@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
 from face_recognize.database.json_backend import JsonDatabase
 
 

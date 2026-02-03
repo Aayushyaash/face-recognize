@@ -1,6 +1,7 @@
 """Unit tests for utility functions."""
 
 import numpy as np
+
 from face_recognize.core.models import BoundingBox
 from face_recognize.core.utils import (
     compute_pairwise_iou,

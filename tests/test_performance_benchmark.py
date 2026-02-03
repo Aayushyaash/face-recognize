@@ -3,6 +3,7 @@
 import time
 
 import numpy as np
+
 from face_recognize.config import DEFAULT_CONFIG
 from face_recognize.core.detector import FaceDetector
 
@@ -60,9 +61,9 @@ class TestPerformanceBenchmark:
         # The actual performance depends on hardware and model
         # Our code overhead should be minimal; loose requirement
         # since model isn't loaded
-        assert (
-            execution_time_ms < 1000
-        ), f"Face detection took {execution_time_ms:.2f} ms, which is too slow"
+        assert execution_time_ms < 1000, (
+            f"Face detection took {execution_time_ms:.2f} ms, which is too slow"
+        )
 
     def test_performance_multiple_calls(self) -> None:
         """Test performance with multiple sequential calls."""
@@ -100,9 +101,9 @@ class TestPerformanceBenchmark:
             f"{avg_time_per_call:.2f} ms"
         )
 
-        assert (
-            avg_time_per_call < 1000
-        ), f"Average face detection time {avg_time_per_call:.2f} ms is too slow"
+        assert avg_time_per_call < 1000, (
+            f"Average face detection time {avg_time_per_call:.2f} ms is too slow"
+        )
 
     def test_performance_with_many_faces(self) -> None:
         """Test performance when detecting many faces in one image."""
@@ -138,6 +139,6 @@ class TestPerformanceBenchmark:
             f"Detection with {len(mock_faces)} faces took: {execution_time_ms:.2f} ms"
         )
 
-        assert (
-            execution_time_ms < 1000
-        ), f"Detection with many faces took {execution_time_ms:.2f} ms, too slow"
+        assert execution_time_ms < 1000, (
+            f"Detection with many faces took {execution_time_ms:.2f} ms, too slow"
+        )

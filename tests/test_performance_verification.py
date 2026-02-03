@@ -3,6 +3,7 @@
 import time
 
 import numpy as np
+
 from face_recognize.config import DEFAULT_CONFIG
 from face_recognize.core.detector import FaceDetector
 
@@ -80,9 +81,9 @@ def test_latency_optimization_verification() -> None:
             print(f"Image size {w}x{h}: {execution_time_ms:.2f} ms")
 
             # Even with larger images, our processing overhead should be minimal
-            assert (
-                execution_time_ms < 500
-            ), f"Processing for {w}x{h} image took {execution_time_ms:.2f} ms"
+            assert execution_time_ms < 500, (
+                f"Processing for {w}x{h} image took {execution_time_ms:.2f} ms"
+            )
 
 
 if __name__ == "__main__":
