@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 from ..config import AppConfig
@@ -66,6 +67,13 @@ Examples:
         default=0.4,
         metavar="SCORE",
         help="Similarity threshold for identification (default: 0.4)",
+    )
+    run_parser.add_argument(
+        "--device",
+        type=str,
+        default="cpu",
+        choices=["cpu", "cuda"],
+        help="Inference device (default: cpu)",
     )
 
     # === register command ===
@@ -134,6 +142,16 @@ def main() -> int:
 
     # Create config with any command-line overrides
     config = AppConfig()
+
+    # Apply command-line overrides if running the 'run' command
+    if args.command == "run":
+        config = replace(
+            config,
+            camera_index=args.camera,
+            model=args.model,
+            similarity_threshold=args.threshold,
+            device=args.device,
+        )
 
     # Initialize logging
     from ..core.logger import setup_logger
