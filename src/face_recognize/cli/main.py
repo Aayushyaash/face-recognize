@@ -48,10 +48,10 @@ Examples:
     )
     run_parser.add_argument(
         "--camera",
-        type=int,
-        default=0,
-        metavar="INDEX",
-        help="Camera device index (default: 0)",
+        type=str,
+        default="0",
+        metavar="SOURCE",
+        help="Camera index (0, 1...) or network URL (http://...)",
     )
     run_parser.add_argument(
         "--model",

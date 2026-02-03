@@ -1,5 +1,7 @@
 """Application configuration."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -45,7 +47,7 @@ class AppConfig:
     database_path: Path = field(default_factory=lambda: Path("data/faces.json"))
 
     # Camera settings
-    camera_index: int = 0
+    camera_index: int | str = 0
     frame_width: int = 640
     frame_height: int = 480
 

@@ -6,7 +6,6 @@ Each command function takes parsed args and config, returns exit code.
 from __future__ import annotations
 
 import argparse
-import platform
 import time
 from dataclasses import replace
 from pathlib import Path
@@ -14,6 +13,7 @@ from pathlib import Path
 import cv2
 
 from ..config import AppConfig
+from ..core.camera import Camera
 from ..core.detector import FaceDetector
 from ..core.logger import logger
 from ..core.tracker import FaceTracker
@@ -32,10 +32,15 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
     Returns:
         Exit code (0 for success).
     """
+    # Parse camera source (args.camera is str)
+    source: int | str = args.camera
+    if isinstance(source, str) and source.isdigit():
+        source = int(source)
+
     # Apply command-line overrides to config
     config = replace(
         config,
-        camera_index=args.camera,
+        camera_index=source,
         model=args.model,
         similarity_threshold=args.threshold,
     )
@@ -57,105 +62,59 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
 
     logger.info(f"Database loaded: {database.count()} persons")
 
-    # Open camera
-    backend = cv2.CAP_ANY
-    if platform.system() == "Windows":
-        backend = cv2.CAP_DSHOW
-
-    cap = cv2.VideoCapture(config.camera_index, backend)
-    if not cap.isOpened():
-        # Fallback to default if DSHOW fails
-        cap = cv2.VideoCapture(config.camera_index)
-
-    if not cap.isOpened():
-        logger.error(f"Error: Could not open camera {config.camera_index}")
-        return 1
-
-    # Set camera resolution
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.frame_width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.frame_height)
-
-    logger.info(f"Camera {config.camera_index} opened. Press 'q' to quit.")
-
     # FPS calculation
     frame_times: list[float] = []
     fps = 0.0
 
-    # Camera failure handling
-    max_retries = 5
-    consecutive_failures = 0
-
     try:
-        while True:
-            frame_start = time.time()
+        with Camera(
+            config.camera_index, config.frame_width, config.frame_height
+        ) as camera:
+            logger.info("Press 'q' to quit.")
 
-            # Capture frame
-            ret, frame = cap.read()
-            if not ret:
-                consecutive_failures += 1
-                msg = f"Warning: Camera read failure ({consecutive_failures}/"
-                msg += f"{max_retries})"
-                logger.warning(msg)
+            while True:
+                frame_start = time.time()
 
-                if consecutive_failures >= max_retries:
-                    logger.error("Error: Max camera failures reached. Exiting.")
+                # Capture frame
+                frame = camera.read()
+                if frame is None:
+                    # Error already logged by Camera class
                     break
 
-                # Attempt to reconnect
-                cap.release()
-                time.sleep(1)
-                cap = cv2.VideoCapture(config.camera_index, backend)
-                if not cap.isOpened():
-                    # Fallback to default if DSHOW fails
-                    cap = cv2.VideoCapture(config.camera_index)
+                # Detect faces
+                faces = detector.detect_faces(frame)
 
-                if not cap.isOpened():
-                    logger.error(
-                        f"Error: Could not reopen camera {config.camera_index}"
-                    )
+                # Track faces
+                tracked_faces = tracker.update(faces)
+
+                # Identify faces
+                identified_faces = identifier.identify(tracked_faces)
+
+                # Render
+                renderer.render(frame, identified_faces)
+                renderer.render_fps(frame, fps)
+
+                # Display
+                cv2.imshow("Face-Recognize", frame)
+
+                # Calculate FPS
+                frame_end = time.time()
+                frame_times.append(frame_end - frame_start)
+                if len(frame_times) > 30:
+                    frame_times.pop(0)
+                if frame_times:
+                    fps = 1.0 / (sum(frame_times) / len(frame_times))
+
+                # Check for quit key
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord("q"):
+                    logger.info("Quitting...")
                     break
 
-                # Set camera resolution again after reopening
-                cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.frame_width)
-                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.frame_height)
-
-                continue
-
-            # successful read
-            consecutive_failures = 0
-
-            # Detect faces
-            faces = detector.detect_faces(frame)
-
-            # Track faces
-            tracked_faces = tracker.update(faces)
-
-            # Identify faces
-            identified_faces = identifier.identify(tracked_faces)
-
-            # Render
-            renderer.render(frame, identified_faces)
-            renderer.render_fps(frame, fps)
-
-            # Display
-            cv2.imshow("Face-Recognize", frame)
-
-            # Calculate FPS
-            frame_end = time.time()
-            frame_times.append(frame_end - frame_start)
-            if len(frame_times) > 30:
-                frame_times.pop(0)
-            if frame_times:
-                fps = 1.0 / (sum(frame_times) / len(frame_times))
-
-            # Check for quit key
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord("q"):
-                logger.info("Quitting...")
-                break
-
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        return 1
     finally:
-        cap.release()
         cv2.destroyAllWindows()
 
     return 0
