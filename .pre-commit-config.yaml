@@ -1,22 +1,10 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.6
+    rev: v0.4.4
     hooks:
       - id: ruff
-        # Remove --fix to prevent auto-fixing. Fail if errors.
         args: []
       - id: ruff-format
-        # ruff-format checks and fails if not formatted, but might auto-format by default.
-        # To make it check-only, we usually generally rely on the hook failing.
-        # But standard behavior of this hook IS to format.
-        # If user strictly wants NO modification, we might need a custom command or 'entry: uv run ruff format --check'
-        # However, for pre-commit, the widely accepted "blocker" IS to format and fail the commit so you check the formatting.
-        # If the user says "instead of fixing because it we may have to make commit two or more times"
-        # This implies they WANT it to be correct on the first try OR they want to manually fix?
-        # Actually, "instead of fixing" usually means they don't want the hook to change the file.
-        # Let's switch `ruff-format` to check only if possible, or explain.
-        # Actually, `ruff-format` hook overwrites.
-        # To check only:
         args: [--check]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -24,4 +12,3 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [types-pillow]
-# Removing black as it conflicts/duplicates ruff-format
