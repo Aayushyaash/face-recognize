@@ -34,6 +34,21 @@ class FaceDetector:
         self.threshold = config.detection_threshold
         self.device = config.device
 
+        # Validate device availability
+        if self.config.device == "cuda":
+            import onnxruntime
+
+            providers = onnxruntime.get_available_providers()
+            if "CUDAExecutionProvider" not in providers:
+                # FAIL FAST with helpful message
+                raise RuntimeError(
+                    "❌ CUDA device requested but 'CUDAExecutionProvider' not found.\n"
+                    "Please install GPU support:\n"
+                    "  uv pip uninstall onnxruntime\n"
+                    "  uv pip install onnxruntime-gpu\n"
+                    f"Available providers: {providers}"
+                )
+
         # Initialize the InsightFace model
         self.model = insightface.app.FaceAnalysis(name=self.model_name, root="./models")
         self.model.prepare(ctx_id=0 if self.device == "cpu" else 0)  # ctx_id 0 for CPU
