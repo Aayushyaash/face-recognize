@@ -3,9 +3,8 @@
 import time
 
 import numpy as np
-
-from src.face_recognize.config import DEFAULT_CONFIG
-from src.face_recognize.core.detector import FaceDetector
+from face_recognize.config import DEFAULT_CONFIG
+from face_recognize.core.detector import FaceDetector
 
 
 class TestPerformanceBenchmark:

@@ -3,10 +3,9 @@
 from unittest.mock import Mock, patch
 
 import numpy as np
-
-from src.face_recognize.config import DEFAULT_CONFIG
-from src.face_recognize.core.detector import FaceDetector
-from src.face_recognize.core.models import Face
+from face_recognize.config import DEFAULT_CONFIG
+from face_recognize.core.detector import FaceDetector
+from face_recognize.core.models import Face
 
 
 class TestFaceDetector:

@@ -1,8 +1,7 @@
 """Unit tests for Face class."""
 
 import numpy as np
-
-from src.face_recognize.core.models import BoundingBox, Face
+from face_recognize.core.models import BoundingBox, Face
 
 
 class TestFace:

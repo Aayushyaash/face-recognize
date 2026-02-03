@@ -4,10 +4,9 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
-from src.face_recognize.config import AppConfig
-from src.face_recognize.core.models import BoundingBox, Face
-from src.face_recognize.core.tracker import FaceTracker
+from face_recognize.config import AppConfig
+from face_recognize.core.models import BoundingBox, Face
+from face_recognize.core.tracker import FaceTracker
 
 
 @pytest.fixture

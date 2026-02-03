@@ -6,8 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
-from src.face_recognize.database.json_backend import JsonDatabase
+from face_recognize.database.json_backend import JsonDatabase
 
 
 def test_json_database_initialization() -> None:

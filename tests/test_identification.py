@@ -6,11 +6,10 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
-from src.face_recognize.config import AppConfig
-from src.face_recognize.core.models import BoundingBox, Face
-from src.face_recognize.database.json_backend import JsonDatabase
-from src.face_recognize.services.identification import (
+from face_recognize.config import AppConfig
+from face_recognize.core.models import BoundingBox, Face
+from face_recognize.database.json_backend import JsonDatabase
+from face_recognize.services.identification import (
     CachedIdentity,
     IdentificationService,
 )
@@ -175,7 +174,7 @@ def test_identify_db_query(service: IdentificationService, mock_db: mock.Mock) -
     )
 
     # Mock the database response for a known person
-    from src.face_recognize.database import PersonRecord
+    from face_recognize.database import PersonRecord
 
     mock_person = PersonRecord(
         id="test_id_123",

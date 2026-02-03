@@ -1,9 +1,8 @@
 """Unit tests for utility functions."""
 
 import numpy as np
-
-from src.face_recognize.core.models import BoundingBox
-from src.face_recognize.core.utils import (
+from face_recognize.core.models import BoundingBox
+from face_recognize.core.utils import (
     compute_pairwise_iou,
     cosine_similarity,
     find_best_matches,
