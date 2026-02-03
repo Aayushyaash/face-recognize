@@ -26,9 +26,6 @@ dev = [
     "ruff>=0.14.14",
     "pre-commit>=3.5.0",
 ]
-gpu = [
-    "onnxruntime-gpu>=1.15.0",
-]
 
 [project.scripts]
 face-recognize = "face_recognize.cli.main:main"
