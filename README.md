@@ -22,23 +22,34 @@
 ## Installation
 
 ```bash
-# Clone repository
-git clone https://github.com/Aayushyaash/face-recognize.git
-cd face-recognize
+# Standard Install (CPU Default)
+uv pip install -e .
 
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate  # Windows
-
-# Install uv (recommended package manager)
-pip install uv
-
-# Install in development mode using uv
+# Development Install
 uv pip install -e ".[dev]"
 ```
 
 > **Note:** This is a development/personal project.
+
+## GPU Support
+
+### Prerequisites
+- NVIDIA GPU with compute capability 6.0+
+- NVIDIA CUDA 12.x
+- cuDNN 9.x
+
+### Activation
+If you want to enable GPU support, you must manually install the GPU packages:
+
+```bash
+# 1. Uninstall CPU versions
+uv pip uninstall onnxruntime opencv-python-headless
+
+# 2. Install GPU version
+uv pip install onnxruntime-gpu
+```
+
+> **Note:** If you encounter errors about `cv2.imshow`, ensure `opencv-python-headless` is NOT installed.
 
 ---
 
@@ -134,10 +145,13 @@ detector.change_model('buffalo_l')  # or 'buffalo_s', 'buffalo_sc'
 ### `run` - Start Camera Identification
 
 ```bash
-face-recognize run [--camera 0] [--model buffalo_s] [--threshold 0.4]
+face-recognize run [--camera 0] [--model buffalo_s] [--threshold 0.4] [--device cpu|cuda]
 ```
 
 Starts real-time face identification from the camera feed.
+
+Options:
+- `--device <cpu|cuda>`: Specify inference device (Default: cpu)
 
 ### `register` - Add New Person
 
@@ -187,6 +201,47 @@ The system consists of several key components:
 
 For implementation details, see the Architecture section above.
 
+### Project Structure
+
+```text
+face-recognize/
+├── .github/
+│   └── workflows/
+│       └── ci.yml               # GitHub Actions for CI/CD (linting, testing, security)
+├── .vscode/
+│   └── tasks.json               # VS Code tasks for development automation
+├── docs/                        # Documentation and planning artifacts
+│   └── ...                      (Implementation plans and reports)
+├── src/
+│   └── face_recognize/          # Main application package
+│       ├── cli/
+│       │   ├── commands.py      # Implementation of CLI commands (run, register, etc.)
+│       │   └── main.py          # Entry point and argument parsing
+│       ├── core/                # Core business logic
+│       │   ├── camera.py        # Camera handling and frame capture
+│       │   ├── detector.py      # Face detection using InsightFace/ONNX
+│       │   ├── logger.py        # Logging configuration
+│       │   └── models.py        # Core data models (BoundingBox, Face, etc.)
+│       ├── database/            # Data persistence layer
+│       │   ├── json_db.py       # JSON-based storage implementation
+│       │   └── models.py        # Database record models
+│       ├── services/            # Higher-level services
+│       │   ├── identification.py # Matching embeddings against database
+│       │   └── tracker.py       # Object tracking across frames
+│       ├── visualization/       # UI rendering
+│       │   └── drawer.py        # Drawing bounding boxes and labels
+│       ├── config.py            # Global application configuration
+│       └── __init__.py
+├── tests/                       # Test suite
+│   ├── test_config_defaults.py  # Configuration unit tests
+│   └── ...                      (Other unit and integration tests)
+├── .pre-commit-config.yaml      # Git hooks configuration (linting before commit)
+├── LICENSE                      # MIT License file
+├── pyproject.toml               # Project metadata and dependencies
+├── README.md                    # Project documentation
+└── uv.lock                      # Exact versions of installed dependencies
+```
+
 ---
 
 ## Development
@@ -199,22 +254,30 @@ git clone https://github.com/Aayushyaash/face-recognize.git
 cd face-recognize
 
 # Create and activate virtual environment
+# Using uv (Recommended)
+uv venv
+
+# Alternative: Standard Python
 python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate  # Windows
 
-# Install development dependencies using uv (recommended)
-uv pip install -e ".[dev]"
+# On Windows:
+.venv\Scripts\activate
 
-# Alternative: Install using pip
-# pip install -e ".[dev]"
+# On Linux/Mac:
+source .venv/bin/activate
+
+# Install dependencies
+uv sync
+
+# Install development dependencies
+uv sync --dev
 ```
 
 ### Code Quality
 
 ```bash
 # Format code
-uv run black src/ tests/
+uv run ruff format src/ tests/
 
 # Lint
 uv run ruff check src/
@@ -222,8 +285,11 @@ uv run ruff check src/
 # Type check
 uv run mypy src/
 
-# Run tests
-uv run pytest tests/ -v
+# Run tests with coverage
+uv run pytest tests/ --cov=src/ --cov-report=term-missing
+
+# Security Scan
+uv run pip install bandit pip-audit && uv run bandit -r src/ && uv run pip-audit .
 ```
 ## License
 
