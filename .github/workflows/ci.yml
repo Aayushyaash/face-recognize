@@ -64,17 +64,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
         with:
-          python-version: "3.10"
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.10
 
       - name: Run Bandit security scan
-        run: |
-          pip install bandit
-          bandit -r src/ -f json -o bandit-report.json || true
+        run: uvx bandit -r src/ -f json -o bandit-report.json || true
 
       - name: Run pip-audit
-        run: |
-          pip install pip-audit
-          pip-audit .
+        run: uvx pip-audit .

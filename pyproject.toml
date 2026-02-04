@@ -59,3 +59,10 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_decorators = false
+
+[tool.uv]
+override-dependencies = [
+    # Override opencv-python-headless to only install on Linux/Mac (or never on Windows)
+    # This effectively removes it from the resolution on Windows, allowing opencv-python to work alone.
+    "opencv-python-headless>=4.11.0 ; sys_platform != 'win32'",
+]

@@ -21,15 +21,44 @@
 
 ## Installation
 
-```bash
-# Standard Install (CPU Default)
-uv pip install -e .
+### Prerequisites
 
-# Development Install
-uv pip install -e ".[dev]"
+- [uv](https://github.com/astral-sh/uv) (for recommended installation)
+- Python 3.10+
+
+### Recommended Method (uv)
+
+This project uses `uv` for dependency management, which is faster and more reliable.
+
+```bash
+# Install dependencies and create virtual environment in one step
+uv sync
+
+# For developers (includes test/lint tools)
+uv sync --dev
 ```
 
-> **Note:** This is a development/personal project.
+### Alternative Method (Standard pip)
+
+If you prefer standard Python tooling:
+
+```bash
+# Create virtual environment
+python -m venv .venv
+
+# Activate it
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
+
+# Install package
+pip install -e .
+```
+
+> **Note:** This is a development/personal project with an internal API subject to change.
+
+
 
 ## GPU Support
 
@@ -39,17 +68,18 @@ uv pip install -e ".[dev]"
 - cuDNN 9.x
 
 ### Activation
-If you want to enable GPU support, you must manually install the GPU packages:
+
+GPU support requires `onnxruntime-gpu`. Since this conflicts with the standard `onnxruntime` CPU package, it must be installed manually.
 
 ```bash
-# 1. Uninstall CPU versions
-uv pip uninstall onnxruntime opencv-python-headless
-
-# 2. Install GPU version
+# If using uv (Recommended)
 uv pip install onnxruntime-gpu
+
+# If using standard pip
+pip install onnxruntime-gpu
 ```
 
-> **Note:** If you encounter errors about `cv2.imshow`, ensure `opencv-python-headless` is NOT installed.
+> **Note:** Ensure you have the correct CUDA libraries installed on your system for `onnxruntime-gpu` to work. Run `face-recognize run --device cuda` to test.
 
 ---
 
@@ -94,6 +124,8 @@ face-recognize run --camera "rtsp://user:password@192.168.1.100:554/stream"
 1. Install "IP Webcam" by Pavel Khlebovich (Thyoni Tech).
 2. Start the server on your phone.
 3. Use the URL format `http://<PHONE_IP>:8080/video`.
+
+> **⚠️ Warning:** The Python API below (`face_recognize.core`) is internal and subject to change without notice. Use the CLI for stable interaction.
 
 ### Using the Face Detection Module
 
@@ -142,16 +174,19 @@ detector.change_model('buffalo_l')  # or 'buffalo_s', 'buffalo_sc'
 
 ## CLI Commands
 
+> **Tip:** Run `face-recognize --help` to see all available commands and options.
+
 ### `run` - Start Camera Identification
 
 ```bash
-face-recognize run [--camera 0] [--model buffalo_s] [--threshold 0.4] [--device cpu|cuda]
+face-recognize run [--camera <index|url>] [--model buffalo_s] [--threshold 0.4] [--device cpu|cuda]
 ```
 
 Starts real-time face identification from the camera feed.
 
 Options:
-- `--device <cpu|cuda>`: Specify inference device (Default: cpu)
+- `--camera`: Camera source. 0 for webcam, or a URL (e.g., `http://192.168.1.5:8080/video`) for IP cameras.
+- `--device <cpu|cuda>`: Specify inference device (Default: cpu). Requires `onnxruntime-gpu` for cuda.
 
 ### `register` - Add New Person
 
