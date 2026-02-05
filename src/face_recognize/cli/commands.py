@@ -11,6 +11,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import cv2
+import numpy as np
 
 from ..config import AppConfig
 from ..core.camera import Camera
@@ -18,7 +19,7 @@ from ..core.detector import FaceDetector
 from ..core.logger import logger
 from ..core.quality import FaceQualityScorer
 from ..core.tracker import FaceTracker
-from ..database.json_backend import JsonDatabase
+from ..database import create_database
 from ..services.identification import IdentificationService
 from ..visualization.renderer import FaceRenderer
 
@@ -57,7 +58,7 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
         return 1
 
     tracker = FaceTracker(config)
-    database = JsonDatabase(config.database_path)
+    database = create_database(config)
     identifier = IdentificationService(database, config)
     renderer = FaceRenderer(config)
     quality_scorer = FaceQualityScorer()
@@ -88,7 +89,9 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
 
                 # Evaluate quality for each face and update with quality scores
                 for face in faces:
-                    quality_score = quality_scorer.evaluate(frame, face.bbox)
+                    # Cast frame to correct type for quality scorer
+                    frame_uint8 = frame.astype(np.uint8)
+                    quality_score = quality_scorer.evaluate(frame_uint8, face.bbox)
                     face.quality_score = quality_score
 
                 # Track faces
@@ -194,7 +197,7 @@ def cmd_register(args: argparse.Namespace, config: AppConfig) -> int:
         return 1
 
     # Add to database
-    database = JsonDatabase(config.database_path)
+    database = create_database(config)
 
     try:
         record = database.add(name, face.embedding)
@@ -215,7 +218,7 @@ def cmd_list(args: argparse.Namespace, config: AppConfig) -> int:
     Returns:
         Exit code (0 for success).
     """
-    database = JsonDatabase(config.database_path)
+    database = create_database(config)
     persons = database.list_all()
 
     if not persons:
@@ -255,7 +258,7 @@ def cmd_delete(args: argparse.Namespace, config: AppConfig) -> int:
         logger.error("Error: Name cannot be empty")
         return 1
 
-    database = JsonDatabase(config.database_path)
+    database = create_database(config)
 
     if database.delete(name):
         logger.info(f'✓ Deleted "{name}" from database')
@@ -281,7 +284,7 @@ def cmd_info(args: argparse.Namespace, config: AppConfig) -> int:
         logger.error("Error: Name cannot be empty")
         return 1
 
-    database = JsonDatabase(config.database_path)
+    database = create_database(config)
     person = database.get(name)
 
     if person is None:

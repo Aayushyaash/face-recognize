@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 from ..config import AppConfig
 from ..core.models import BoundingBox, Face
-from ..database.json_backend import JsonDatabase
+from ..database.base import DatabaseBackend
 
 
 @dataclass
@@ -67,7 +67,7 @@ class IdentificationService:
         config: Application configuration.
     """
 
-    def __init__(self, database: JsonDatabase, config: AppConfig) -> None:
+    def __init__(self, database: DatabaseBackend, config: AppConfig) -> None:
         """Initialize the identification service.
 
         Args:
