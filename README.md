@@ -16,6 +16,10 @@
 - **⚡ Fast Performance**: Optimized for real-time processing
 - **🔒 Privacy Focused**: All processing happens locally
 - **🔌 Extensible Design**: Modular architecture for easy customization
+- **🔍 Quality Assessment**: Face quality scoring for registration and recognition
+- **🛡️ Anti-Spoofing**: Liveness detection to prevent photo/screen attacks
+- **🗄️ Database Options**: Support for both JSON and encrypted SQLite backends
+- **📷 Multi-Camera**: Concurrent access to multiple cameras with grid view
 
 ---
 
@@ -35,7 +39,7 @@ This project uses `uv` for dependency management, which is faster and more relia
 uv sync
 
 # For developers (includes test/lint tools)
-uv sync --dev
+uv sync --extra dev
 ```
 
 ### Alternative Method (Standard pip)
@@ -54,6 +58,9 @@ source .venv/bin/activate
 
 # Install package
 pip install -e .
+
+# OR: Install package with dev tools
+pip install -e .[dev]
 ```
 
 > **Note:** This is a development/personal project with an internal API subject to change.
@@ -179,14 +186,15 @@ detector.change_model('buffalo_l')  # or 'buffalo_s', 'buffalo_sc'
 ### `run` - Start Camera Identification
 
 ```bash
-face-recognize run [--camera <index|url>] [--model buffalo_s] [--threshold 0.4] [--device cpu|cuda]
+face-recognize run [--camera <index|url> [<index|url> ...]] [--model buffalo_s] [--threshold 0.4] [--device cpu|cuda] [--database-backend json|sqlite]
 ```
 
 Starts real-time face identification from the camera feed.
 
 Options:
-- `--camera`: Camera source. 0 for webcam, or a URL (e.g., `http://192.168.1.5:8080/video`) for IP cameras.
+- `--camera`: Camera source. 0 for webcam, or a URL (e.g., `http://192.168.1.5:8080/video`) for IP cameras. Can specify multiple cameras for multi-camera mode.
 - `--device <cpu|cuda>`: Specify inference device (Default: cpu). Requires `onnxruntime-gpu` for cuda.
+- `--database-backend <json|sqlite>`: Specify database backend (Default: json).
 
 ### `register` - Add New Person
 
@@ -288,24 +296,36 @@ face-recognize/
 git clone https://github.com/Aayushyaash/face-recognize.git
 cd face-recognize
 
-# Create and activate virtual environment
-# Using uv (Recommended)
-uv venv
+# --- OPTION 1: Using uv (Recommended) ---
 
-# Alternative: Standard Python
-python -m venv .venv
+# Create virtual environment and install all dependencies (including dev tools)
+uv sync --extra dev
 
-# On Windows:
+# Activate virtual environment
+# Windows:
 .venv\Scripts\activate
-
-# On Linux/Mac:
+# Linux/Mac:
 source .venv/bin/activate
 
-# Install dependencies
-uv sync
+# Install pre-commit hooks
+uv run pre-commit install
 
-# Install development dependencies
-uv sync --dev
+# --- OPTION 2: Standard Python (pip) ---
+
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
+
+# Install package with development dependencies
+pip install -e .[dev]
+
+# Install pre-commit hooks
+pre-commit install
 ```
 
 ### Code Quality
@@ -324,7 +344,13 @@ uv run mypy src/
 uv run pytest tests/ --cov=src/ --cov-report=term-missing
 
 # Security Scan
-uv run pip install bandit pip-audit && uv run bandit -r src/ && uv run pip-audit .
+uv run bandit -r src/ && uv run pip-audit .
+
+# Run all pre-commit hooks
+# Using uv:
+uv run pre-commit run --all-files
+# Using pip:
+pre-commit run --all-files
 ```
 ## License
 
