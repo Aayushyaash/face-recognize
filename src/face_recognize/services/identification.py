@@ -124,7 +124,8 @@ class IdentificationService:
             IdentifiedFace with resolved identity.
         """
         track_id = face.track_id
-        assert track_id is not None  # Guaranteed by caller
+        if track_id is None:
+            raise ValueError("Face must have track_id assigned before identification")
 
         # Check cache
         cached = self._cache.get(track_id)

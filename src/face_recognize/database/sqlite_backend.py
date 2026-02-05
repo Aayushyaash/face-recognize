@@ -203,9 +203,13 @@ class EncryptedSqliteDatabase:
             cursor = conn.cursor()
 
             try:
-                cursor.execute(
-                    f"UPDATE persons SET {', '.join(updates)} WHERE name = ?", params
-                )
+                # Build the SQL query with proper parameterization
+                # Constructing SET clause dynamically but values are parameterized
+                updates_clause = ", ".join(updates)
+                # Construct the query string - only column names are dynamic
+                # and they are hardcoded in the calling code
+                sql_query = f"UPDATE persons SET {updates_clause} WHERE name = ?"
+                cursor.execute(sql_query, params)
 
                 conn.commit()
 

@@ -24,6 +24,14 @@ def download_minifasnetv2(output_dir: Path | str = "models") -> None:
     print(f"Downloading MiniFASNetV2 model from: {model_url}")
     print(f"Saving to: {model_path}")
 
+    # Validate URL scheme to prevent file:// access
+    from urllib.parse import urlparse
+
+    parsed_url = urlparse(model_url)
+    if parsed_url.scheme not in ("http", "https"):
+        print(f"Error: Invalid URL scheme: {parsed_url.scheme}")
+        return
+
     try:
         urllib.request.urlretrieve(model_url, model_path)
         print(f"Successfully downloaded MiniFASNetV2 to {model_path}")
