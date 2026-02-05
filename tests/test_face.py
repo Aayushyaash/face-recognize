@@ -49,3 +49,39 @@ class TestFace:
         calculated_similarity = face.similarity_to_embedding(embedding2)
 
         assert abs(calculated_similarity - expected_similarity) < 0.001
+
+    def test_face_with_quality_and_liveness_fields(self) -> None:
+        """Test Face class with new quality and liveness fields."""
+        embedding = np.array([1.0, 0.0, 0.0])
+        bbox = BoundingBox(x1=0, y1=0, x2=10, y2=10)
+        landmarks = np.zeros((5, 2), dtype=np.float32)
+
+        # Create face with new fields
+        face = Face(
+            embedding=embedding,
+            bbox=bbox,
+            confidence=0.9,
+            landmarks=landmarks,
+            quality_score=0.8,
+            liveness_score=0.7,
+            is_real=True,
+        )
+
+        # Verify the new fields are set correctly
+        assert face.quality_score == 0.8
+        assert face.liveness_score == 0.7
+        assert face.is_real is True
+
+    def test_face_with_optional_fields_default_values(self) -> None:
+        """Test Face class with optional fields defaulting to None."""
+        embedding = np.array([1.0, 0.0, 0.0])
+        bbox = BoundingBox(x1=0, y1=0, x2=10, y2=10)
+        landmarks = np.zeros((5, 2), dtype=np.float32)
+
+        # Create face without new fields (should default to None)
+        face = Face(embedding=embedding, bbox=bbox, confidence=0.9, landmarks=landmarks)
+
+        # Verify the new fields default to None
+        assert face.quality_score is None
+        assert face.liveness_score is None
+        assert face.is_real is None

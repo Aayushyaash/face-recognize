@@ -75,6 +75,13 @@ Examples:
         choices=["cpu", "cuda"],
         help="Inference device (default: cpu)",
     )
+    run_parser.add_argument(
+        "--database-backend",
+        type=str,
+        default="json",
+        choices=["json", "sqlite"],
+        help="Database backend to use (default: json)",
+    )
 
     # === register command ===
     register_parser = subparsers.add_parser(
@@ -151,6 +158,7 @@ def main() -> int:
             model=args.model,
             similarity_threshold=args.threshold,
             device=args.device,
+            database_backend=args.database_backend,
         )
 
     # Initialize logging

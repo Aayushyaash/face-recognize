@@ -19,7 +19,10 @@ class AppConfig:
         similarity_threshold: Minimum embedding similarity for match.
         unknown_cache_ttl: Seconds to cache unknown identity.
         min_quality_score: Minimum quality score for registration.
+        liveness_threshold: Threshold for liveness detection (0-1).
+        enable_liveness: Whether to enable liveness detection.
         database_path: Path to JSON database file.
+        database_backend: Database backend ('json' or 'sqlite').
         camera_index: Camera device index.
         frame_width: Camera frame width.
         frame_height: Camera frame height.
@@ -41,10 +44,15 @@ class AppConfig:
     unknown_cache_ttl: float = 30.0
 
     # Registration settings
-    min_quality_score: float = 0.5
+    min_quality_score: float = 0.6  # Updated to 0.6 as per requirements
+
+    # Liveness settings
+    liveness_threshold: float = 0.5
+    enable_liveness: bool = True
 
     # Database settings
     database_path: Path = field(default_factory=lambda: Path("data/faces.json"))
+    database_backend: str = "json"  # Default to JSON backend
 
     # Camera settings
     camera_index: int | str = 0

@@ -100,6 +100,9 @@ class Face:
         confidence: Detection confidence score (0-1).
         landmarks: 5-point facial landmarks array (5, 2).
         track_id: Persistent tracking ID (assigned by tracker).
+        quality_score: Quality score for the face image (0.0-1.0).
+        liveness_score: Liveness score for anti-spoofing (0.0-1.0).
+        is_real: Boolean flag indicating if the face is real (not spoof).
     """
 
     embedding: npt.NDArray[np.float32]
@@ -107,6 +110,9 @@ class Face:
     confidence: float
     landmarks: npt.NDArray[np.float32]
     track_id: Optional[int] = None
+    quality_score: Optional[float] = None
+    liveness_score: Optional[float] = None
+    is_real: Optional[bool] = None
 
     def similarity(self, other: Face) -> float:
         """Calculate cosine similarity with another face.
