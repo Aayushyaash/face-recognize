@@ -76,17 +76,31 @@ pip install -e .[dev]
 
 ### Activation
 
-GPU support requires `onnxruntime-gpu`. Since this conflicts with the standard `onnxruntime` CPU package, it must be installed manually.
+9.x
+- **Windows Users**: You MUST add the CUDA `bin` directory to your system PATH.
 
-```bash
-# If using uv (Recommended)
-uv pip install onnxruntime-gpu
+### Installation Steps (Windows)
 
-# If using standard pip
-pip install onnxruntime-gpu
-```
+1. **Install CUDA Toolkit 12.x**
+   - Download from [NVIDIA Developer](https://developer.nvidia.com/cuda-downloads).
+   - Install using the "Express" option.
 
-> **Note:** Ensure you have the correct CUDA libraries installed on your system for `onnxruntime-gpu` to work. Run `face-recognize run --device cuda` to test.
+2. **Install cuDNN 9.x**
+   - Download from [NVIDIA cuDNN](https://developer.nvidia.com/cudnn).
+   - Extract the zip file.
+   - Copy the contents of the `bin` folder (all `.dll` files) to your CUDA installation's bin directory.
+     - Default path: `C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.x\bin`
+
+3. **Install Python Binding**
+   ```bash
+   # If using uv (Recommended)
+   uv pip install onnxruntime-gpu"
+
+   # If using standard pip
+   pip install onnxruntime-gpu
+   ```
+
+> **Note:** Run `face-recognize run --device cuda` to verify. If you see `Error 126`, it means the system cannot find `cublasLt64_12.dll` or `cudnn_cnn_infer64_8.dll`. Ensure step 2 was completed correctly.
 
 ---
 
@@ -302,8 +316,10 @@ cd face-recognize
 uv sync --extra dev
 
 # Activate virtual environment
+
 # Windows:
 .venv\Scripts\activate
+
 # Linux/Mac:
 source .venv/bin/activate
 
