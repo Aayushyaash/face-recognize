@@ -18,6 +18,7 @@ from ..core.camera import Camera
 from ..core.detector import FaceDetector
 from ..core.logger import logger
 from ..core.quality import FaceQualityScorer
+from ..core.threaded_camera import ThreadedCamera
 from ..core.tracker import FaceTracker
 from ..database import create_database
 from ..services.identification import IdentificationService
@@ -34,20 +35,28 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
     Returns:
         Exit code (0 for success).
     """
-    # Parse camera source (args.camera is str)
-    source: int | str = args.camera
-    if isinstance(source, str) and source.isdigit():
-        source = int(source)
+    # Parse camera sources (args.camera is now a list)
+    camera_sources = args.camera
+    # Convert string digits to integers where appropriate
+    sources: list[int | str] = []
+    for source in camera_sources:
+        if source.isdigit():
+            sources.append(int(source))
+        else:
+            sources.append(source)
 
     # Apply command-line overrides to config
     config = replace(
         config,
-        camera_index=source,
+        camera_index=(
+            sources[0] if len(sources) == 1 else sources
+        ),  # Keep first camera or list
         model=args.model,
         similarity_threshold=args.threshold,
     )
     logger.info(f"Initializing with model: {config.model}")
     logger.info(f"Similarity threshold: {config.similarity_threshold}")
+    logger.info(f"Using cameras: {sources}")
 
     # Initialize components
     try:
@@ -70,56 +79,150 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
     fps = 0.0
 
     try:
-        with Camera(
-            config.camera_index, config.frame_width, config.frame_height
-        ) as camera:
+        # Handle single vs multiple cameras
+        if len(sources) == 1:
+            # Single camera mode - use original implementation
+            source = sources[0]
+            with Camera(source, config.frame_width, config.frame_height) as camera:
+                logger.info("Press 'q' to quit.")
+
+                while True:
+                    frame_start = time.time()
+
+                    # Capture frame
+                    frame = camera.read()
+                    if frame is None:
+                        # Error already logged by Camera class
+                        break
+
+                    # Detect faces
+                    faces = detector.detect_faces(frame)
+
+                    # Evaluate quality for each face and update with quality scores
+                    for face in faces:
+                        # Cast frame to correct type for quality scorer
+                        frame_uint8 = frame.astype(np.uint8)
+                        quality_score = quality_scorer.evaluate(frame_uint8, face.bbox)
+                        face.quality_score = quality_score
+
+                    # Track faces
+                    tracked_faces = tracker.update(faces)
+
+                    # Identify faces
+                    identified_faces = identifier.identify(tracked_faces)
+
+                    # Render
+                    renderer.render(frame, identified_faces)
+                    renderer.render_fps(frame, fps)
+
+                    # Display
+                    cv2.imshow("Face-Recognize", frame)
+
+                    # Calculate FPS
+                    frame_end = time.time()
+                    frame_times.append(frame_end - frame_start)
+                    if len(frame_times) > 30:
+                        frame_times.pop(0)
+                    if frame_times:
+                        fps = 1.0 / (sum(frame_times) / len(frame_times))
+
+                    # Check for quit key
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord("q"):
+                        logger.info("Quitting...")
+                        break
+        else:
+            # Multiple camera mode
+            logger.info(f"Starting multi-camera mode with {len(sources)} cameras")
+
+            # Create threaded cameras
+            threaded_cameras = []
+            for source in sources:
+                cam = ThreadedCamera(
+                    source=source,
+                    frame_width=config.frame_width,
+                    frame_height=config.frame_height,
+                )
+                threaded_cameras.append(cam)
+
+            # Start all cameras
+            for cam in threaded_cameras:
+                cam.start()
+
             logger.info("Press 'q' to quit.")
 
-            while True:
-                frame_start = time.time()
+            try:
+                while True:
+                    frame_start = time.time()
 
-                # Capture frame
-                frame = camera.read()
-                if frame is None:
-                    # Error already logged by Camera class
-                    break
+                    # Capture frames from all cameras
+                    frames = []
+                    for cam in threaded_cameras:
+                        frame = cam.read()
+                        if frame is not None:
+                            frames.append(frame)
 
-                # Detect faces
-                faces = detector.detect_faces(frame)
+                    if not frames:
+                        # No frames available, wait a bit and continue
+                        time.sleep(0.01)
+                        continue
 
-                # Evaluate quality for each face and update with quality scores
-                for face in faces:
-                    # Cast frame to correct type for quality scorer
-                    frame_uint8 = frame.astype(np.uint8)
-                    quality_score = quality_scorer.evaluate(frame_uint8, face.bbox)
-                    face.quality_score = quality_score
+                    # Process each frame for face detection
+                    all_identified_faces = []
+                    processed_frames = []
 
-                # Track faces
-                tracked_faces = tracker.update(faces)
+                    for i, frame in enumerate(frames):
+                        # Detect faces
+                        faces = detector.detect_faces(frame)
 
-                # Identify faces
-                identified_faces = identifier.identify(tracked_faces)
+                        # Evaluate quality for each face and update with quality scores
+                        for face in faces:
+                            # Cast frame to correct type for quality scorer
+                            frame_uint8 = frame.astype(np.uint8)
+                            quality_score = quality_scorer.evaluate(
+                                frame_uint8, face.bbox
+                            )
+                            face.quality_score = quality_score
 
-                # Render
-                renderer.render(frame, identified_faces)
-                renderer.render_fps(frame, fps)
+                        # Track faces
+                        tracked_faces = tracker.update(faces)
 
-                # Display
-                cv2.imshow("Face-Recognize", frame)
+                        # Identify faces
+                        identified_faces = identifier.identify(tracked_faces)
 
-                # Calculate FPS
-                frame_end = time.time()
-                frame_times.append(frame_end - frame_start)
-                if len(frame_times) > 30:
-                    frame_times.pop(0)
-                if frame_times:
-                    fps = 1.0 / (sum(frame_times) / len(frame_times))
+                        all_identified_faces.extend(identified_faces)
 
-                # Check for quit key
-                key = cv2.waitKey(1) & 0xFF
-                if key == ord("q"):
-                    logger.info("Quitting...")
-                    break
+                        # Render on this frame
+                        renderer.render(frame, identified_faces)
+                        processed_frames.append(frame)
+
+                    # Create grid view
+                    grid_frame = renderer.render_grid_view(processed_frames)
+
+                    # Add FPS to grid view
+                    renderer.render_fps(grid_frame, fps)
+
+                    # Display grid view
+                    cv2.imshow("Face-Recognize - Multi-Camera Grid", grid_frame)
+
+                    # Calculate FPS
+                    frame_end = time.time()
+                    frame_times.append(frame_end - frame_start)
+                    if len(frame_times) > 30:
+                        frame_times.pop(0)
+                    if frame_times:
+                        fps = 1.0 / (sum(frame_times) / len(frame_times))
+
+                    # Check for quit key
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord("q"):
+                        logger.info("Quitting...")
+                        break
+
+            finally:
+                # Stop all cameras
+                for cam in threaded_cameras:
+                    cam.stop()
 
     except Exception as e:
         logger.error(f"Unexpected error: {e}")

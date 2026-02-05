@@ -203,3 +203,64 @@ class FaceRenderer:
 
         # Convert RGB (PIL) -> BGR (OpenCV)
         frame[:] = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+
+    def render_grid_view(
+        self, frames: list[npt.NDArray[Any]], output_size: tuple[int, int] | None = None
+    ) -> npt.NDArray[Any]:
+        """Render multiple camera feeds in a grid view.
+
+        Args:
+            frames: List of frames from different cameras.
+            output_size: Optional output size (width, height). If None,
+            calculates automatically.
+
+        Returns:
+            Single frame with all camera feeds arranged in a grid.
+        """
+        if not frames:
+            # Return a blank frame if no input frames
+            blank_frame = np.zeros((480, 640, 3), dtype=np.uint8)
+            return blank_frame
+
+        num_frames = len(frames)
+
+        # Calculate grid dimensions (try to make it as square as possible)
+        cols = int(np.ceil(np.sqrt(num_frames)))
+        rows = int(np.ceil(num_frames / cols))
+
+        # Determine cell size based on first frame
+        h, w = frames[0].shape[:2]
+        cell_h, cell_w = h, w
+
+        # If output size is specified, calculate cell size accordingly
+        if output_size:
+            out_w, out_h = output_size
+            cell_w = out_w // cols
+            cell_h = out_h // rows
+
+        # Create output frame
+        out_h = cell_h * rows
+        out_w = cell_w * cols
+        output_frame = np.zeros((out_h, out_w, 3), dtype=np.uint8)
+
+        # Place each frame in the grid
+        for idx, frame in enumerate(frames):
+            row = idx // cols
+            col = idx % cols
+
+            # Resize frame to fit cell if needed
+            if frame.shape[0] != cell_h or frame.shape[1] != cell_w:
+                resized_frame = cv2.resize(frame, (cell_w, cell_h))
+            else:
+                resized_frame = frame
+
+            # Calculate position in output frame
+            y_start = row * cell_h
+            y_end = y_start + cell_h
+            x_start = col * cell_w
+            x_end = x_start + cell_w
+
+            # Place the frame in the grid
+            output_frame[y_start:y_end, x_start:x_end] = resized_frame
+
+        return output_frame

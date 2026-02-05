@@ -50,9 +50,11 @@ Examples:
     run_parser.add_argument(
         "--camera",
         type=str,
-        default="0",
+        default=["0"],
+        nargs="+",  # Allow multiple camera sources
         metavar="SOURCE",
-        help="Camera index (0, 1...) or network URL (http://...)",
+        help="Camera index (0, 1...) or network URL (http://...). "
+        "Can specify multiple cameras.",
     )
     run_parser.add_argument(
         "--model",
@@ -152,9 +154,11 @@ def main() -> int:
 
     # Apply command-line overrides if running the 'run' command
     if args.command == "run":
+        # Handle multiple cameras - if single camera, keep as is, otherwise use list
+        camera_index = args.camera[0] if len(args.camera) == 1 else args.camera
         config = replace(
             config,
-            camera_index=args.camera,
+            camera_index=camera_index,
             model=args.model,
             similarity_threshold=args.threshold,
             device=args.device,

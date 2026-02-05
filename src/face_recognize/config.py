@@ -55,7 +55,7 @@ class AppConfig:
     database_backend: str = "json"  # Default to JSON backend
 
     # Camera settings
-    camera_index: int | str = 0
+    camera_index: int | str | list[int | str] = 0
     frame_width: int = 640
     frame_height: int = 480
 
