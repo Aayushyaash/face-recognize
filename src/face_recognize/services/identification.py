@@ -41,6 +41,7 @@ class IdentifiedFace:
         confidence: Match confidence (0.0 if unknown).
         is_known: True if matched in database.
         track_id: Tracking ID for reference.
+        quality_score: Quality score of the face image (0.0-1.0).
     """
 
     bbox: BoundingBox
@@ -48,6 +49,7 @@ class IdentifiedFace:
     confidence: float
     is_known: bool
     track_id: int
+    quality_score: float | None = None
 
 
 class IdentificationService:
@@ -102,6 +104,8 @@ class IdentificationService:
                 )
 
             identified = self._identify_single(face)
+            # Pass quality score from original face to identified face
+            identified.quality_score = face.quality_score
             results.append(identified)
 
         # Clean up cache entries for tracks no longer present

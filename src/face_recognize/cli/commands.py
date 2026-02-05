@@ -16,6 +16,7 @@ from ..config import AppConfig
 from ..core.camera import Camera
 from ..core.detector import FaceDetector
 from ..core.logger import logger
+from ..core.quality import FaceQualityScorer
 from ..core.tracker import FaceTracker
 from ..database.json_backend import JsonDatabase
 from ..services.identification import IdentificationService
@@ -59,6 +60,7 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
     database = JsonDatabase(config.database_path)
     identifier = IdentificationService(database, config)
     renderer = FaceRenderer(config)
+    quality_scorer = FaceQualityScorer()
 
     logger.info(f"Database loaded: {database.count()} persons")
 
@@ -83,6 +85,11 @@ def cmd_run(args: argparse.Namespace, config: AppConfig) -> int:
 
                 # Detect faces
                 faces = detector.detect_faces(frame)
+
+                # Evaluate quality for each face and update with quality scores
+                for face in faces:
+                    quality_score = quality_scorer.evaluate(frame, face.bbox)
+                    face.quality_score = quality_score
 
                 # Track faces
                 tracked_faces = tracker.update(faces)
@@ -174,10 +181,14 @@ def cmd_register(args: argparse.Namespace, config: AppConfig) -> int:
 
     face = faces[0]
 
-    # Validate face quality (using confidence as proxy)
-    if face.confidence < config.min_quality_score:
+    # Evaluate face quality using the quality scorer
+    quality_scorer = FaceQualityScorer()
+    quality_score = quality_scorer.evaluate(image, face.bbox)
+
+    # Validate face quality
+    if quality_score < config.min_quality_score:
         logger.error(
-            f"Error: Face quality too low ({face.confidence:.2f}). "
+            f"Error: Face quality too low ({quality_score:.2f}). "
             f"Minimum required: {config.min_quality_score}"
         )
         return 1

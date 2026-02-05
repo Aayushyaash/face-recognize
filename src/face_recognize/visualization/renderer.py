@@ -100,9 +100,18 @@ class FaceRenderer:
         """
         # Format label text
         if face.is_known:
-            label = f"{face.name} ({face.confidence:.2f})"
+            if face.quality_score is not None:
+                conf_str = f"{face.confidence:.2f}"
+                qual_str = f"{face.quality_score:.2f}"
+                label = f"{face.name} ({conf_str}, Q:{qual_str})"
+            else:
+                label = f"{face.name} ({face.confidence:.2f})"
         else:
-            label = "Unknown"
+            if face.quality_score is not None:
+                qual_str = f"{face.quality_score:.2f}"
+                label = f"Unknown (Q:{qual_str})"
+            else:
+                label = "Unknown"
 
         # Convert BGR (OpenCV) -> RGB (PIL) only once per frame
         # We'll do this per label for now, but could optimize to do once per frame
