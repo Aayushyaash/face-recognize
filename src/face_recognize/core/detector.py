@@ -43,15 +43,24 @@ class FaceDetector:
                 # FAIL FAST with helpful message
                 raise RuntimeError(
                     "❌ CUDA device requested but 'CUDAExecutionProvider' not found.\n"
-                    "Please install GPU support:\n"
+                    "Please install GPU support on Windows:\n"
                     "  uv pip uninstall onnxruntime\n"
                     "  uv pip install onnxruntime-gpu\n"
                     f"Available providers: {providers}"
                 )
 
+        if self.device == "cuda":
+            providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+            ctx_id = 0
+        else:
+            providers = ["CPUExecutionProvider"]
+            ctx_id = -1
+
         # Initialize the InsightFace model
-        self.model = insightface.app.FaceAnalysis(name=self.model_name, root="./models")
-        self.model.prepare(ctx_id=0 if self.device == "cpu" else 0)  # ctx_id 0 for CPU
+        self.model = insightface.app.FaceAnalysis(
+            name=self.model_name, root="./models", providers=providers
+        )
+        self.model.prepare(ctx_id=ctx_id)
 
     def change_model(self, model_name: str) -> None:
         """Change the InsightFace model.
@@ -70,9 +79,19 @@ class FaceDetector:
             )
 
         self.model_name = model_name
+
+        if self.device == "cuda":
+            providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+            ctx_id = 0
+        else:
+            providers = ["CPUExecutionProvider"]
+            ctx_id = -1
+
         # Reinitialize the model with the new name
-        self.model = insightface.app.FaceAnalysis(name=self.model_name, root="./models")
-        self.model.prepare(ctx_id=0 if self.device == "cpu" else 0)  # ctx_id 0 for CPU
+        self.model = insightface.app.FaceAnalysis(
+            name=self.model_name, root="./models", providers=providers
+        )
+        self.model.prepare(ctx_id=ctx_id)
 
     def detect_faces(self, image: npt.NDArray[Any]) -> List[Face]:
         """Detect faces in an image.
