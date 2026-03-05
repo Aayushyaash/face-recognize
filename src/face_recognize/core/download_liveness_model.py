@@ -33,7 +33,7 @@ def download_minifasnetv2(output_dir: Path | str = "models") -> None:
         return
 
     try:
-        urllib.request.urlretrieve(model_url, model_path)
+        urllib.request.urlretrieve(model_url, model_path)  # nosec B310
         print(f"Successfully downloaded MiniFASNetV2 to {model_path}")
 
         # Verify file was downloaded

@@ -143,9 +143,10 @@ Examples:
 def main() -> int:
     """Main entry point for CLI.
 
-    Returns:
+    Args:
         Exit code (0 for success, non-zero for errors).
     """
+
     parser = create_parser()
     args = parser.parse_args()
 

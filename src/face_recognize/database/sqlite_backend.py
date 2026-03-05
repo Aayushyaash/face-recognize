@@ -208,7 +208,7 @@ class EncryptedSqliteDatabase:
                 updates_clause = ", ".join(updates)
                 # Construct the query string - only column names are dynamic
                 # and they are hardcoded in the calling code
-                sql_query = f"UPDATE persons SET {updates_clause} WHERE name = ?"
+                sql_query = f"UPDATE persons SET {updates_clause} WHERE name = ?"  # nosec B608
                 cursor.execute(sql_query, params)
 
                 conn.commit()
