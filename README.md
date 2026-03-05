@@ -78,29 +78,27 @@ pip install -e .[dev]
 
 9.x
 - **Windows Users**: You MUST add the CUDA `bin` directory to your system PATH.
+- **zlib Dependency**: `zlibwapi.dll` is required for cuDNN on Windows.
 
 ### Installation Steps (Windows)
 
-1. **Install CUDA Toolkit 12.x**
-   - Download from [NVIDIA Developer](https://developer.nvidia.com/cuda-downloads).
-   - Install using the "Express" option.
+#### Method 1: UV (Recommended)
+```bash
+uv pip install ".[gpu]"
 
-2. **Install cuDNN 9.x**
-   - Download from [NVIDIA cuDNN](https://developer.nvidia.com/cudnn).
-   - Extract the zip file.
-   - Copy the contents of the `bin` folder (all `.dll` files) to your CUDA installation's bin directory.
-     - Default path: `C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.x\bin`
+# Or install manually
+uv pip install onnxruntime-gpu>=1.15.0
+```
 
-3. **Install Python Binding**
-   ```bash
-   # If using uv (Recommended)
-   uv pip install onnxruntime-gpu"
+#### Method 2: Standard pip
+```bash
+pip install ".[gpu]"
 
-   # If using standard pip
-   pip install onnxruntime-gpu
-   ```
+# Or install manually
+pip install onnxruntime-gpu>=1.15.0
+```
 
-> **Note:** Run `face-recognize run --device cuda` to verify. If you see `Error 126`, it means the system cannot find `cublasLt64_12.dll` or `cudnn_cnn_infer64_8.dll`. Ensure step 2 was completed correctly.
+> **Note:** The face-recognize package automatically resolves NVIDIA NV-RTC and cuDNN DLL paths for Windows at runtime using pip-installed NVIDIA packages. No manual DLL copying or complex environment variable setups are needed. Ensure you have installed CUDA 12.x natively on your machine or via pip packages.
 
 ---
 
